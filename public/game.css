@@ -589,7 +589,7 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 0.2rem 0.8rem;
+  padding: 0.15rem 0.55rem;
   cursor: default;
   position: relative;
   transition: transform 0.16s, box-shadow 0.16s, background 0.16s, border-color 0.16s;
@@ -598,14 +598,13 @@ body {
 }
 
 .card-word {
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--text);
-  line-height: 1.3;
-  word-break: break-word;
-  hyphens: auto;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 /* ── Spymaster color hints ─────────────────────────── */
@@ -1129,4 +1128,109 @@ body.peek-mode .card.peekable:hover {
   .powerup-btn { font-size: 0.68rem; padding: 0.32rem 0.6rem; }
   .rapid-timer { font-size: 1.25rem; }
   .rapid-toggle { font-size: 0.72rem; padding: 0.45rem 0.7rem; }
+}
+
+/* ─── Role Selection Overlay ──────────��───────────── */
+.role-overlay-card {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+}
+
+.role-overlay-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.7rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #e74c3c, #c0392b 40%, #2980b9, #1a5276);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.role-overlay-card .role-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 1.75rem;
+  line-height: 1.5;
+}
+
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.role-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 1.1rem 1rem;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  background: var(--surface2);
+  transition: all 0.18s;
+  touch-action: manipulation;
+}
+
+.role-btn:hover  { transform: translateY(-2px); }
+.role-btn:active { transform: scale(0.97); }
+
+.role-btn-team {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.role-btn-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+
+.role-btn-desc {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* Red team buttons */
+.role-btn-red-sp {
+  border-color: rgba(231,76,60,0.35);
+  background: rgba(192,57,43,0.1);
+}
+.role-btn-red-sp .role-btn-team { color: #e74c3c; }
+.role-btn-red-sp:hover { border-color: #e74c3c; background: rgba(231,76,60,0.15); }
+
+.role-btn-red-op {
+  border-color: rgba(231,76,60,0.2);
+  background: rgba(192,57,43,0.06);
+}
+.role-btn-red-op .role-btn-team { color: rgba(231,76,60,0.75); }
+.role-btn-red-op:hover { border-color: rgba(231,76,60,0.6); background: rgba(231,76,60,0.1); }
+
+/* Blue team buttons */
+.role-btn-blue-sp {
+  border-color: rgba(52,152,219,0.35);
+  background: rgba(26,82,118,0.12);
+}
+.role-btn-blue-sp .role-btn-team { color: #3498db; }
+.role-btn-blue-sp:hover { border-color: #3498db; background: rgba(52,152,219,0.15); }
+
+.role-btn-blue-op {
+  border-color: rgba(52,152,219,0.2);
+  background: rgba(26,82,118,0.07);
+}
+.role-btn-blue-op .role-btn-team { color: rgba(52,152,219,0.75); }
+.role-btn-blue-op:hover { border-color: rgba(52,152,219,0.6); background: rgba(52,152,219,0.1); }
+
+@media (max-width: 480px) {
+  .role-overlay-card h2 { font-size: 1.4rem; }
+  .role-btn { padding: 0.9rem 0.75rem; }
+  .role-btn-name { font-size: 0.9rem; }
 }

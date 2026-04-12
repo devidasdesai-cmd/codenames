@@ -87,9 +87,45 @@ function roleBadgeShort(role) {
   return role === 'spymaster' ? 'Pathfinder' : 'Seeker';
 }
 
+// ─── Role selection overlay ───────────────────────────
+const roleOverlay = document.getElementById('role-overlay');
+const roleGrid    = document.getElementById('role-grid');
+
+function renderRoleSelect() {
+  roleGrid.innerHTML = '';
+
+  const OPTIONS = [
+    { team: 'red',  role: 'spymaster', css: 'role-btn-red-sp',  name: 'Pathfinder', desc: 'Sees all card colors' },
+    { team: 'blue', role: 'spymaster', css: 'role-btn-blue-sp', name: 'Pathfinder', desc: 'Sees all card colors' },
+    { team: 'red',  role: 'operative', css: 'role-btn-red-op',  name: 'Seeker',     desc: 'Guesses the words' },
+    { team: 'blue', role: 'operative', css: 'role-btn-blue-op', name: 'Seeker',     desc: 'Guesses the words' },
+  ];
+
+  OPTIONS.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = `role-btn ${opt.css}`;
+    btn.innerHTML =
+      `<span class="role-btn-team">${cap(opt.team)}</span>` +
+      `<span class="role-btn-name">${opt.name}</span>` +
+      `<span class="role-btn-desc">${opt.desc}</span>`;
+    btn.addEventListener('click', () => {
+      socket.emit('set-team', { team: opt.team, role: opt.role });
+    });
+    roleGrid.appendChild(btn);
+  });
+}
+
 // ─── Main render ─────────────────────────────────────
 function render() {
   if (!state) return;
+
+  // Show role-select overlay when in lobby and no role picked yet
+  if (state.phase === 'lobby' && !state.myTeam) {
+    roleOverlay.style.display = 'flex';
+    renderRoleSelect();
+  } else {
+    roleOverlay.style.display = 'none';
+  }
 
   roomCodeDisplay.textContent = state.roomCode;
 

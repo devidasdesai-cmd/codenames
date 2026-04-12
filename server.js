@@ -176,6 +176,11 @@ io.on('connection', (socket) => {
 
     let playerId = existingId;
     if (existingId && game.players[existingId]) {
+      // Reconnect (e.g. page navigation) — cancel any pending disconnect timer
+      if (game.players[existingId]._leaveTimer) {
+        clearTimeout(game.players[existingId]._leaveTimer);
+        delete game.players[existingId]._leaveTimer;
+      }
       game.players[existingId].socketId = socket.id;
     } else {
       playerId = uuidv4();
@@ -183,6 +188,7 @@ io.on('connection', (socket) => {
         id: playerId, socketId: socket.id,
         name: name || 'Player', team: null, role: null,
       };
+      addLog(game, `${name || 'Player'} joined the game`);
     }
 
     currentRoom = roomCode;
@@ -422,10 +428,21 @@ io.on('connection', (socket) => {
     if (!game || !currentPlayerId || !game.players[currentPlayerId]) return;
     if (game.players[currentPlayerId].socketId !== socket.id) return;
 
-    const name = game.players[currentPlayerId].name;
-    delete game.players[currentPlayerId];
-    addLog(game, `${name} left the game`);
-    broadcastState(game);
+    // Use a grace period before removing the player.
+    // Page navigation (index → game.html) disconnects the old socket before
+    // the new one reconnects, causing a false "left the game" log.
+    // The timer is cancelled if the player reconnects within 5 seconds.
+    const pid  = currentPlayerId;
+    const room = currentRoom;
+    game.players[pid]._leaveTimer = setTimeout(() => {
+      const g = games[room];
+      if (!g || !g.players[pid]) return;
+      if (g.players[pid].socketId !== socket.id) return; // reconnected
+      const pname = g.players[pid].name;
+      delete g.players[pid];
+      addLog(g, `${pname} left the game`);
+      broadcastState(g);
+    }, 5000);
   });
 });
 
