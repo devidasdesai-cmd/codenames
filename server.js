@@ -301,12 +301,11 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // ── Treasure: +1 bonus point, turn ends ───────────
+    // ── Treasure: +1 bonus point, turn continues ──────
     if (card.color === 'treasure') {
       game.scores[game.currentTeam]++;
       game.treasureTeam = game.currentTeam;
       addLog(game, `${player.name} found the Treasure! +1 bonus point for ${game.currentTeam === 'red' ? 'Red' : 'Blue'}!`);
-      switchTurn(game);
       broadcastState(game);
       return;
     }
