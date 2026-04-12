@@ -170,9 +170,15 @@ io.on('connection', (socket) => {
   socket.on('set-team', ({ team, role }) => {
     const game = games[currentRoom];
     if (!game || !game.players[currentPlayerId]) return;
-    if (game.phase !== 'lobby') return;
 
     const player = game.players[currentPlayerId];
+
+    if (game.phase !== 'lobby') {
+      // Mid-game: only unassigned players may join, and only as operatives
+      if (player.team !== null) return;
+      if (role !== 'operative') return;
+    }
+
     player.team = team;
     player.role = role;
     broadcastState(game);

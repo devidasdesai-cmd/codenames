@@ -240,6 +240,13 @@ function dotColor(color) {
 function renderActionBar() {
   actionBar.innerHTML = '';
 
+  // Unassigned player during an active game: show operative join buttons
+  const inActiveGame = state.phase !== 'lobby' && state.phase !== 'ended';
+  if (inActiveGame && !state.myTeam) {
+    renderMidGameJoin();
+    return;
+  }
+
   if (state.phase === 'lobby') {
     renderLobbyActions();
   } else if (state.phase === 'spymaster-clue') {
@@ -285,6 +292,28 @@ function renderLobbyActions() {
   startBtn.textContent = 'Start Game';
   startBtn.addEventListener('click', () => socket.emit('start-game'));
   wrap.appendChild(startBtn);
+
+  actionBar.appendChild(wrap);
+}
+
+function renderMidGameJoin() {
+  const wrap = document.createElement('div');
+  wrap.className = 'lobby-actions';
+
+  const label = document.createElement('span');
+  label.className = 'waiting-msg';
+  label.textContent = 'Join as operative:';
+  wrap.appendChild(label);
+
+  ['red', 'blue'].forEach(team => {
+    const btn = document.createElement('button');
+    btn.className = `team-pick-btn ${team}-op`;
+    btn.innerHTML = `${cap(team)}<span class="role-label">Operative</span>`;
+    btn.addEventListener('click', () => {
+      socket.emit('set-team', { team, role: 'operative' });
+    });
+    wrap.appendChild(btn);
+  });
 
   actionBar.appendChild(wrap);
 }
