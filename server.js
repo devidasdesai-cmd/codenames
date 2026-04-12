@@ -11,7 +11,6 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// In-memory game store
 const games = {};
 
 function generateRoomCode() {
@@ -23,28 +22,19 @@ function generateRoomCode() {
 
 function createGame(roomCode) {
   const words = getWords(25);
-  // Randomly pick starting team
   const startTeam = Math.random() < 0.5 ? 'red' : 'blue';
 
-  // Color assignment: starting team gets 9, other gets 8, 1 assassin, 7 neutral
   const colors = [];
-  const startCount = 9;
-  const otherCount = 8;
-  const assassinCount = 1;
-  const neutralCount = 7;
-
-  for (let i = 0; i < startCount; i++) colors.push(startTeam);
-  for (let i = 0; i < otherCount; i++) colors.push(startTeam === 'red' ? 'blue' : 'red');
-  for (let i = 0; i < assassinCount; i++) colors.push('assassin');
-  for (let i = 0; i < neutralCount; i++) colors.push('neutral');
-
-  // Shuffle colors
-  const shuffledColors = colors.sort(() => Math.random() - 0.5);
+  for (let i = 0; i < 9; i++) colors.push(startTeam);
+  for (let i = 0; i < 8; i++) colors.push(startTeam === 'red' ? 'blue' : 'red');
+  colors.push('assassin');
+  for (let i = 0; i < 7; i++) colors.push('neutral');
+  colors.sort(() => Math.random() - 0.5);
 
   const cards = words.map((word, i) => ({
     id: i,
     word,
-    color: shuffledColors[i],
+    color: colors[i],
     revealed: false,
   }));
 
@@ -53,18 +43,25 @@ function createGame(roomCode) {
     cards,
     startTeam,
     currentTeam: startTeam,
-    phase: 'lobby', // lobby, spymaster-clue, guessing, ended
+    phase: 'lobby', // lobby | captain-clue | guessing | ended
     players: {},
     clue: null,
     guessesLeft: 0,
     winner: null,
     log: [],
+    powerups: {
+      red:  { peek: 1, shield: 1, shieldActive: false },
+      blue: { peek: 1, shield: 1, shieldActive: false },
+    },
+    rapidMode: false,
+    timerEnd: null,
+    _timer: null,
   };
 }
 
 function getPublicState(game, playerId) {
   const player = game.players[playerId];
-  const isSpymaster = player && player.role === 'spymaster';
+  const isCaptain = player && player.role === 'spymaster';
 
   return {
     roomCode: game.roomCode,
@@ -75,6 +72,9 @@ function getPublicState(game, playerId) {
     guessesLeft: game.guessesLeft,
     winner: game.winner,
     log: game.log,
+    powerups: game.powerups,
+    rapidMode: game.rapidMode,
+    timerEnd: game.timerEnd,
     players: Object.values(game.players).map(p => ({
       id: p.id,
       name: p.name,
@@ -85,7 +85,7 @@ function getPublicState(game, playerId) {
       id: card.id,
       word: card.word,
       revealed: card.revealed,
-      color: card.revealed || isSpymaster ? card.color : null,
+      color: card.revealed || isCaptain ? card.color : null,
     })),
     myTeam: player ? player.team : null,
     myRole: player ? player.role : null,
@@ -94,10 +94,8 @@ function getPublicState(game, playerId) {
 
 function broadcastState(game) {
   Object.keys(game.players).forEach(pid => {
-    const socket = io.sockets.sockets.get(game.players[pid].socketId);
-    if (socket) {
-      socket.emit('game-state', getPublicState(game, pid));
-    }
+    const sock = io.sockets.sockets.get(game.players[pid].socketId);
+    if (sock) sock.emit('game-state', getPublicState(game, pid));
   });
 }
 
@@ -110,6 +108,37 @@ function addLog(game, msg) {
   if (game.log.length > 50) game.log.pop();
 }
 
+// ─── Timer helpers ────────────────────────────────────
+function clearGameTimer(game) {
+  if (game._timer) { clearTimeout(game._timer); game._timer = null; }
+  game.timerEnd = null;
+}
+
+function startRapidTimer(game) {
+  clearGameTimer(game);
+  game.timerEnd = Date.now() + 60000;
+  game._timer = setTimeout(() => {
+    // Guard: ensure this is still the same active game
+    if (games[game.roomCode] !== game || game.phase !== 'guessing') return;
+    addLog(game, "Time's up! Turn passes automatically.");
+    switchTurn(game);
+    broadcastState(game);
+  }, 60000);
+}
+
+// ─── Turn switching (module-scope so timer can call it) ───
+function switchTurn(game) {
+  clearGameTimer(game);
+  // Reset shield for the team that just played
+  game.powerups[game.currentTeam].shieldActive = false;
+  game.currentTeam = game.currentTeam === 'red' ? 'blue' : 'red';
+  game.phase = 'captain-clue';
+  game.clue = null;
+  game.guessesLeft = 0;
+  addLog(game, `${game.currentTeam === 'red' ? 'Red' : 'Blue'} team's turn`);
+}
+
+// ─── Socket handlers ──────────────────────────────────
 io.on('connection', (socket) => {
   let currentRoom = null;
   let currentPlayerId = null;
@@ -121,14 +150,10 @@ io.on('connection', (socket) => {
     const game = createGame(roomCode);
     const playerId = uuidv4();
     game.players[playerId] = {
-      id: playerId,
-      socketId: socket.id,
-      name: name || 'Player',
-      team: null,
-      role: null,
+      id: playerId, socketId: socket.id,
+      name: name || 'Player', team: null, role: null,
     };
     games[roomCode] = game;
-
     currentRoom = roomCode;
     currentPlayerId = playerId;
     socket.join(roomCode);
@@ -139,30 +164,22 @@ io.on('connection', (socket) => {
 
   socket.on('join-room', ({ roomCode, name, playerId: existingId }) => {
     const game = games[roomCode];
-    if (!game) {
-      socket.emit('error', { message: 'Room not found' });
-      return;
-    }
+    if (!game) { socket.emit('error', { message: 'Room not found' }); return; }
 
     let playerId = existingId;
     if (existingId && game.players[existingId]) {
-      // Reconnecting
       game.players[existingId].socketId = socket.id;
     } else {
       playerId = uuidv4();
       game.players[playerId] = {
-        id: playerId,
-        socketId: socket.id,
-        name: name || 'Player',
-        team: null,
-        role: null,
+        id: playerId, socketId: socket.id,
+        name: name || 'Player', team: null, role: null,
       };
     }
 
     currentRoom = roomCode;
     currentPlayerId = playerId;
     socket.join(roomCode);
-
     socket.emit('room-joined', { roomCode, playerId });
     broadcastState(game);
   });
@@ -172,9 +189,8 @@ io.on('connection', (socket) => {
     if (!game || !game.players[currentPlayerId]) return;
 
     const player = game.players[currentPlayerId];
-
     if (game.phase !== 'lobby') {
-      // Mid-game: only unassigned players may join, and only as operatives
+      // Mid-game: only unassigned players can join, and only as scouts
       if (player.team !== null) return;
       if (role !== 'operative') return;
     }
@@ -184,27 +200,34 @@ io.on('connection', (socket) => {
     broadcastState(game);
   });
 
+  socket.on('set-rapid-mode', ({ enabled }) => {
+    const game = games[currentRoom];
+    if (!game || game.phase !== 'lobby') return;
+    game.rapidMode = !!enabled;
+    broadcastState(game);
+  });
+
   socket.on('start-game', () => {
     const game = games[currentRoom];
     if (!game) return;
 
     const players = Object.values(game.players);
-    const hasRedSpy = players.some(p => p.team === 'red' && p.role === 'spymaster');
-    const hasBlueSpy = players.some(p => p.team === 'blue' && p.role === 'spymaster');
-    const hasRedOp  = players.some(p => p.team === 'red' && p.role === 'operative');
-    const hasBlueOp = players.some(p => p.team === 'blue' && p.role === 'operative');
+    const hasRedCap  = players.some(p => p.team === 'red'  && p.role === 'spymaster');
+    const hasBlueCap = players.some(p => p.team === 'blue' && p.role === 'spymaster');
+    const hasRedSco  = players.some(p => p.team === 'red'  && p.role === 'operative');
+    const hasBlueSco = players.some(p => p.team === 'blue' && p.role === 'operative');
 
-    if (!hasRedSpy || !hasRedOp) {
-      socket.emit('error', { message: 'Red team needs at least one spymaster and one operative' });
+    if (!hasRedCap || !hasRedSco) {
+      socket.emit('error', { message: 'Red team needs at least one Word Captain and one Scout' });
       return;
     }
-    if (!hasBlueSpy || !hasBlueOp) {
-      socket.emit('error', { message: 'Blue team needs at least one spymaster and one operative' });
+    if (!hasBlueCap || !hasBlueSco) {
+      socket.emit('error', { message: 'Blue team needs at least one Word Captain and one Scout' });
       return;
     }
 
-    game.phase = 'spymaster-clue';
-    addLog(game, `Game started! ${game.startTeam === 'red' ? 'Red' : 'Blue'} goes first (${game.startTeam === 'red' ? 9 : 8} cards)`);
+    game.phase = 'captain-clue';
+    addLog(game, `Game started! ${game.startTeam === 'red' ? 'Red' : 'Blue'} goes first (${game.startTeam === 'red' ? 9 : 8} words)`);
     broadcastState(game);
   });
 
@@ -214,7 +237,7 @@ io.on('connection', (socket) => {
 
     const player = game.players[currentPlayerId];
     if (!player || player.role !== 'spymaster' || player.team !== game.currentTeam) return;
-    if (game.phase !== 'spymaster-clue') return;
+    if (game.phase !== 'captain-clue') return;
 
     const clueWord = word.trim().toUpperCase();
     const clueCount = parseInt(count);
@@ -225,6 +248,8 @@ io.on('connection', (socket) => {
     game.phase = 'guessing';
 
     addLog(game, `${player.name} (${game.currentTeam}) gives clue: "${clueWord}" for ${clueCount === 0 ? '∞' : clueCount}`);
+
+    if (game.rapidMode) startRapidTimer(game);
     broadcastState(game);
   });
 
@@ -239,22 +264,34 @@ io.on('connection', (socket) => {
     const card = game.cards[cardId];
     if (!card || card.revealed) return;
 
+    const isOwnCard = card.color === game.currentTeam;
+
+    // ── Shield check ──────────────────────────────────
+    if (!isOwnCard && game.powerups[game.currentTeam].shieldActive) {
+      game.powerups[game.currentTeam].shield--;
+      game.powerups[game.currentTeam].shieldActive = false;
+      addLog(game, `Shield activated! "${card.word}" was blocked — guess doesn't count.`);
+      broadcastState(game);
+      return; // card stays hidden, turn continues, guesses unchanged
+    }
+
+    // ── Reveal card ───────────────────────────────────
     card.revealed = true;
     addLog(game, `${player.name} guessed "${card.word}" — ${card.color.toUpperCase()}`);
 
-    // Check assassin
     if (card.color === 'assassin') {
       game.winner = game.currentTeam === 'red' ? 'blue' : 'red';
       game.phase = 'ended';
-      addLog(game, `Assassin! ${game.winner === 'red' ? 'Red' : 'Blue'} team wins!`);
+      clearGameTimer(game);
+      addLog(game, `Danger word! ${game.winner === 'red' ? 'Red' : 'Blue'} team wins!`);
       broadcastState(game);
       return;
     }
 
-    // Check win
     if (countRemaining(game, 'red') === 0) {
       game.winner = 'red';
       game.phase = 'ended';
+      clearGameTimer(game);
       addLog(game, 'Red team wins!');
       broadcastState(game);
       return;
@@ -262,13 +299,13 @@ io.on('connection', (socket) => {
     if (countRemaining(game, 'blue') === 0) {
       game.winner = 'blue';
       game.phase = 'ended';
+      clearGameTimer(game);
       addLog(game, 'Blue team wins!');
       broadcastState(game);
       return;
     }
 
-    // Wrong team card or neutral = end turn
-    if (card.color !== game.currentTeam) {
+    if (!isOwnCard) {
       switchTurn(game);
       broadcastState(game);
       return;
@@ -276,10 +313,7 @@ io.on('connection', (socket) => {
 
     // Correct guess
     game.guessesLeft--;
-    if (game.guessesLeft <= 0) {
-      switchTurn(game);
-    }
-
+    if (game.guessesLeft <= 0) switchTurn(game);
     broadcastState(game);
   });
 
@@ -296,14 +330,51 @@ io.on('connection', (socket) => {
     broadcastState(game);
   });
 
+  // ── Power-up: Peek ────────────────────────────────
+  socket.on('use-peek', ({ cardId }) => {
+    const game = games[currentRoom];
+    if (!game) return;
+
+    const player = game.players[currentPlayerId];
+    if (!player || player.role !== 'operative' || player.team !== game.currentTeam) return;
+    if (game.phase !== 'guessing') return;
+    if (game.powerups[game.currentTeam].peek <= 0) return;
+
+    const card = game.cards[cardId];
+    if (!card || card.revealed) return;
+
+    game.powerups[game.currentTeam].peek--;
+    const isSafe = card.color === game.currentTeam;
+    addLog(game, `${player.name} used Peek on "${card.word}"`);
+
+    // Respond only to the requester — nobody else sees the color
+    socket.emit('peek-result', { cardId, color: card.color, isSafe });
+    broadcastState(game);
+  });
+
+  // ── Power-up: Shield ──────────────────────────────
+  socket.on('activate-shield', () => {
+    const game = games[currentRoom];
+    if (!game) return;
+
+    const player = game.players[currentPlayerId];
+    if (!player || player.role !== 'operative' || player.team !== game.currentTeam) return;
+    if (game.phase !== 'guessing') return;
+    if (game.powerups[game.currentTeam].shield <= 0) return;
+
+    game.powerups[game.currentTeam].shieldActive = !game.powerups[game.currentTeam].shieldActive;
+    addLog(game, `Shield ${game.powerups[game.currentTeam].shieldActive ? 'activated' : 'deactivated'} by ${player.name}`);
+    broadcastState(game);
+  });
+
   socket.on('new-game', () => {
     const game = games[currentRoom];
     if (!game) return;
 
     const player = game.players[currentPlayerId];
-    // During an active game only spymasters can force a new game; after game ends anyone can
     if (game.phase !== 'ended' && (!player || player.role !== 'spymaster')) return;
 
+    clearGameTimer(game);
     const newGame = createGame(currentRoom);
     newGame.players = game.players;
     Object.values(newGame.players).forEach(p => { p.team = null; p.role = null; });
@@ -317,9 +388,6 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     const game = games[currentRoom];
     if (!game || !currentPlayerId || !game.players[currentPlayerId]) return;
-
-    // If the player reconnected on a newer socket, their stored socketId will
-    // have been updated. Don't evict them — only the old socket is gone.
     if (game.players[currentPlayerId].socketId !== socket.id) return;
 
     const name = game.players[currentPlayerId].name;
@@ -327,14 +395,6 @@ io.on('connection', (socket) => {
     addLog(game, `${name} left the game`);
     broadcastState(game);
   });
-
-  function switchTurn(game) {
-    game.currentTeam = game.currentTeam === 'red' ? 'blue' : 'red';
-    game.phase = 'spymaster-clue';
-    game.clue = null;
-    game.guessesLeft = 0;
-    addLog(game, `${game.currentTeam === 'red' ? 'Red' : 'Blue'} team's turn`);
-  }
 });
 
 const PORT = process.env.PORT || 3000;

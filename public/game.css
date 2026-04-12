@@ -913,3 +913,167 @@ body {
   .logo-sm { display: none; }
   .team-pick-btn { min-width: 64px; font-size: 0.72rem; }
 }
+
+/* ─── Rapid Mode Toggle (lobby) ───────────────────── */
+.rapid-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.52rem 0.9rem;
+  border-radius: 10px;
+  border: 2px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.04em;
+  touch-action: manipulation;
+}
+
+.rapid-toggle:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+.rapid-toggle.active {
+  border-color: #f0c040;
+  background: rgba(240,192,64,0.1);
+  color: #f0c040;
+}
+
+/* ─── Rapid Timer ─────────────────────────────────── */
+.rapid-timer {
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  padding: 0.1rem 0;
+  transition: color 0.3s;
+}
+
+.rapid-timer.urgent {
+  color: #e74c3c;
+  animation: pulse-timer 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-timer {
+  from { opacity: 1; }
+  to   { opacity: 0.5; }
+}
+
+/* ─── Power-up Buttons ────────────────────────────── */
+.powerup-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.powerup-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.75rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+
+.powerup-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.powerup-btn:not(:disabled):hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
+.powerup-btn:not(:disabled):active { transform: scale(0.97); }
+
+/* Peek active (in peek selection mode) */
+.peek-btn.active {
+  border-color: #9b59b6;
+  background: rgba(155,89,182,0.15);
+  color: #c39bd3;
+}
+
+/* Shield active */
+.shield-btn.active {
+  border-color: #2ecc71;
+  background: rgba(46,204,113,0.12);
+  color: #2ecc71;
+}
+
+/* ─── Peek card states ────────────────────────────── */
+/* Cursor when in peek mode */
+body.peek-mode .card.peekable { cursor: crosshair; }
+
+body.peek-mode .card.peekable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 2px #9b59b6, 0 4px 14px rgba(0,0,0,0.3);
+  border-color: #9b59b6;
+}
+
+/* Peek result overlays */
+.card.peek-safe {
+  box-shadow: 0 0 0 2px #2ecc71;
+  border-color: #2ecc71 !important;
+}
+
+.card.peek-danger {
+  box-shadow: 0 0 0 2px #e74c3c;
+  border-color: #e74c3c !important;
+}
+
+.peek-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(2px);
+  animation: peek-fade 3s ease forwards;
+}
+
+.card.peek-safe  .peek-overlay { color: #2ecc71; }
+.card.peek-danger .peek-overlay { color: #e74c3c; }
+
+@keyframes peek-fade {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ─── Shield Banner ───────────────────────────────── */
+.shield-banner {
+  width: 100%;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #2ecc71;
+  background: rgba(46,204,113,0.08);
+  border: 1px solid rgba(46,204,113,0.25);
+  border-radius: 7px;
+  padding: 0.3rem 0.6rem;
+  letter-spacing: 0.03em;
+}
+
+/* ─── Mobile power-up + timer adjustments ─────────── */
+@media (max-width: 640px) {
+  .powerup-btn { font-size: 0.68rem; padding: 0.32rem 0.6rem; }
+  .rapid-timer { font-size: 1.25rem; }
+  .rapid-toggle { font-size: 0.72rem; padding: 0.45rem 0.7rem; }
+}
