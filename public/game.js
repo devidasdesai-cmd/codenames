@@ -420,31 +420,83 @@ function renderActionBar() {
   }
 }
 
+function buildToggleOption(icon, label, active, onClick) {
+  const row = document.createElement('div');
+  row.className = `toggle-option${active ? ' active' : ''}`;
+
+  const iconSpan = document.createElement('span');
+  iconSpan.innerHTML = icon;
+  iconSpan.style.display = 'flex';
+  iconSpan.style.alignItems = 'center';
+  row.appendChild(iconSpan);
+
+  const lbl = document.createElement('span');
+  lbl.className = 'toggle-option-label';
+  lbl.textContent = label;
+  row.appendChild(lbl);
+
+  const sw = document.createElement('div');
+  sw.className = `toggle-switch${active ? ' on' : ''}`;
+  const knob = document.createElement('div');
+  knob.className = 'toggle-knob';
+  sw.appendChild(knob);
+  row.appendChild(sw);
+
+  row.addEventListener('click', onClick);
+  return row;
+}
+
 function renderLobbyActions() {
   const wrap = document.createElement('div');
   wrap.className = 'lobby-actions';
 
+  // Begin Expedition button
   const startBtn = document.createElement('button');
   startBtn.className = 'start-btn';
   startBtn.textContent = 'Begin Expedition';
   startBtn.addEventListener('click', () => socket.emit('start-game'));
   wrap.appendChild(startBtn);
 
-  // Rapid mode toggle
-  const rapidToggle = document.createElement('button');
-  rapidToggle.className = `rapid-toggle${state.rapidMode ? ' active' : ''}`;
-  rapidToggle.title = 'Enable 60-second timer per guessing turn';
-  rapidToggle.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Rapid${state.rapidMode ? ' ON' : ' OFF'}`;
-  rapidToggle.addEventListener('click', () => socket.emit('set-rapid-mode', { enabled: !state.rapidMode }));
-  wrap.appendChild(rapidToggle);
+  // Duration input (created first so rapidRow closure can reference it)
+  const durRow = document.createElement('div');
+  durRow.className = 'duration-row';
+  durRow.style.display = state.rapidMode ? '' : 'none';
+  const durInput = document.createElement('input');
+  durInput.type = 'number';
+  durInput.className = 'duration-input';
+  durInput.value = state.rapidDuration || 60;
+  durInput.min = 15;
+  durInput.max = 300;
+  durInput.step = 5;
+  durInput.title = 'Turn timer in seconds (15–300)';
+  durInput.addEventListener('click', e => e.stopPropagation());
+  durInput.addEventListener('change', () => {
+    const dur = Math.max(15, Math.min(300, parseInt(durInput.value) || 60));
+    durInput.value = dur;
+    socket.emit('set-rapid-mode', { enabled: true, duration: dur });
+  });
+  durRow.appendChild(document.createTextNode('Timer: '));
+  durRow.appendChild(durInput);
+  durRow.appendChild(document.createTextNode(' sec'));
 
-  // Definition lookup toggle
-  const defToggle = document.createElement('button');
-  defToggle.className = `rapid-toggle${state.definitionLookup ? ' active' : ''}`;
-  defToggle.title = 'Pathfinders can hover over words to see their definitions';
-  defToggle.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Definitions${state.definitionLookup ? ' ON' : ' OFF'}`;
-  defToggle.addEventListener('click', () => socket.emit('set-definition-mode', { enabled: !state.definitionLookup }));
-  wrap.appendChild(defToggle);
+  // Rapid mode toggle
+  const rapidRow = buildToggleOption(
+    `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    'Rapid Mode',
+    state.rapidMode,
+    () => socket.emit('set-rapid-mode', { enabled: !state.rapidMode, duration: parseInt(durInput.value) || 60 })
+  );
+  wrap.appendChild(rapidRow);
+  wrap.appendChild(durRow);
+
+  // Definitions toggle
+  const defRow = buildToggleOption(
+    `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+    'Definitions',
+    state.definitionLookup,
+    () => socket.emit('set-definition-mode', { enabled: !state.definitionLookup })
+  );
+  wrap.appendChild(defRow);
 
   actionBar.appendChild(wrap);
 }

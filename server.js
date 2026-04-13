@@ -59,6 +59,7 @@ function createGame(roomCode) {
       blue: { peek: 1, shield: 1, shieldActive: false },
     },
     rapidMode: false,
+    rapidDuration: 60,
     timerEnd: null,
     definitionLookup: false,
     _timer: null,
@@ -82,6 +83,7 @@ function getPublicState(game, playerId) {
     treasureTeam: game.treasureTeam,
     powerups: game.powerups,
     rapidMode: game.rapidMode,
+    rapidDuration: game.rapidDuration,
     timerEnd: game.timerEnd,
     definitionLookup: game.definitionLookup,
     players: Object.values(game.players).map(p => ({
@@ -125,14 +127,15 @@ function clearGameTimer(game) {
 
 function startRapidTimer(game) {
   clearGameTimer(game);
-  game.timerEnd = Date.now() + 60000;
+  const ms = (game.rapidDuration || 60) * 1000;
+  game.timerEnd = Date.now() + ms;
   game._timer = setTimeout(() => {
     // Guard: ensure this is still the same active game
     if (games[game.roomCode] !== game || game.phase !== 'guessing') return;
     addLog(game, "Time's up! Turn passes automatically.");
     switchTurn(game);
     broadcastState(game);
-  }, 60000);
+  }, ms);
 }
 
 // ─── Turn switching (module-scope so timer can call it) ───
@@ -216,10 +219,13 @@ io.on('connection', (socket) => {
     broadcastState(game);
   });
 
-  socket.on('set-rapid-mode', ({ enabled }) => {
+  socket.on('set-rapid-mode', ({ enabled, duration }) => {
     const game = games[currentRoom];
     if (!game || game.phase !== 'lobby') return;
     game.rapidMode = !!enabled;
+    if (typeof duration === 'number' && duration >= 15 && duration <= 300) {
+      game.rapidDuration = Math.round(duration);
+    }
     broadcastState(game);
   });
 
