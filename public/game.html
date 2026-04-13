@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/game.css" />
+  <script>(function(){var t=localStorage.getItem('wordhunt-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
 </head>
 <body>
   <!-- Header -->
@@ -36,6 +37,7 @@
         <span class="score-label">Blue</span>
       </div>
     </div>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle dark/light mode" aria-label="Toggle theme"></button>
     <div class="header-right" id="header-right"></div>
   </header>
 
@@ -97,6 +99,26 @@
       <h2 id="winner-title"></h2>
       <p id="winner-sub"></p>
       <button class="btn btn-outline" id="new-game-btn">New Game</button>
+    </div>
+  </div>
+
+  <!-- Treasure found animation -->
+  <div class="event-anim" id="treasure-anim">
+    <div class="event-anim-bg treasure-bg"></div>
+    <div class="event-anim-card">
+      <span class="event-anim-icon">✨</span>
+      <div class="event-anim-title treasure-title">Treasure Found!</div>
+      <div class="event-anim-sub treasure-sub" id="treasure-anim-sub"></div>
+    </div>
+  </div>
+
+  <!-- Abyss triggered animation -->
+  <div class="event-anim" id="abyss-anim">
+    <div class="event-anim-bg abyss-bg"></div>
+    <div class="event-anim-card">
+      <span class="event-anim-icon abyss-spin">🌀</span>
+      <div class="event-anim-title abyss-title">Into the Abyss</div>
+      <div class="event-anim-sub abyss-sub" id="abyss-anim-sub"></div>
     </div>
   </div>
 

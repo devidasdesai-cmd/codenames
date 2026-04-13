@@ -56,12 +56,23 @@ socket.on('room-joined', ({ playerId: assignedId }) => {
 });
 
 socket.on('game-state', (s) => {
-  state = s;
+  // Detect new log entries before overwriting state
+  const prevFirst = state ? (state.log[0] || '') : '';
+  const newFirst  = s.log[0] || '';
+
   // Exit peek mode if it's no longer our turn / guessing phase
   if (peekMode && (s.phase !== 'guessing' || s.myTeam !== s.currentTeam)) {
     peekMode = false;
     document.body.classList.remove('peek-mode');
   }
+
+  state = s;
+
+  if (newFirst && newFirst !== prevFirst) {
+    if (newFirst.includes('found the Treasure')) showEventAnim('treasure', s.currentTeam);
+    if (newFirst.includes('The Abyss'))          showEventAnim('abyss',    s.currentTeam);
+  }
+
   render();
 });
 
@@ -627,3 +638,46 @@ function renderOverlay() {
     winnerOverlay.style.display = 'none';
   }
 }
+
+// ─── Event Animations ────────────────────────────
+function showEventAnim(type, team) {
+  const el  = document.getElementById(`${type}-anim`);
+  const sub = document.getElementById(`${type}-anim-sub`);
+  if (!el || !sub) return;
+
+  const teamName = team === 'red' ? 'Red' : 'Blue';
+  sub.textContent = type === 'treasure'
+    ? `${teamName} crew claims the prize!`
+    : `${teamName} crew falls into the void…`;
+
+  el.classList.remove('visible');
+  void el.offsetWidth; // force reflow to restart animation
+  el.classList.add('visible');
+
+  clearTimeout(el._animTimer);
+  el._animTimer = setTimeout(() => el.classList.remove('visible'), 5000);
+}
+
+// ─── Theme Toggle ─────────────────────────────────
+(function () {
+  const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+
+  const sunSvg  = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
+  const moonSvg = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+
+  function applyIcon() {
+    const t = document.documentElement.getAttribute('data-theme') || 'dark';
+    btn.innerHTML = t === 'dark' ? sunSvg : moonSvg;
+  }
+
+  btn.addEventListener('click', () => {
+    const t    = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = t === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('wordhunt-theme', next);
+    applyIcon();
+  });
+
+  applyIcon();
+})();
