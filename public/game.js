@@ -7,7 +7,8 @@ let playerId = params.get('pid');
 if (!roomCode || !playerId) window.location.href = '/';
 
 let state = null;
-let peekMode = false;       // client-only: waiting for card click to peek
+let peekMode = false;           // client-only: waiting for card click to peek
+let settingsExpanded = false;   // client-only: lobby settings panel open
 let peekResults = {};       // cardId → { color, expires }
 let timerInterval = null;   // setInterval handle for countdown
 let abyssAnimating = false; // delay winner overlay until abyss animation finishes
@@ -420,83 +421,124 @@ function renderActionBar() {
   }
 }
 
-function buildToggleOption(icon, label, active, onClick) {
+function buildSettingsRow(label, desc, active, onClick) {
   const row = document.createElement('div');
-  row.className = `toggle-option${active ? ' active' : ''}`;
+  row.className = 'settings-inline-row';
+  row.addEventListener('click', onClick);
 
-  const iconSpan = document.createElement('span');
-  iconSpan.innerHTML = icon;
-  iconSpan.style.display = 'flex';
-  iconSpan.style.alignItems = 'center';
-  row.appendChild(iconSpan);
-
-  const lbl = document.createElement('span');
-  lbl.className = 'toggle-option-label';
+  const grp = document.createElement('div');
+  grp.className = 'settings-inline-label-group';
+  const lbl = document.createElement('div');
+  lbl.className = 'settings-inline-label';
   lbl.textContent = label;
-  row.appendChild(lbl);
+  const dsc = document.createElement('div');
+  dsc.className = 'settings-inline-desc';
+  dsc.textContent = desc;
+  grp.appendChild(lbl);
+  grp.appendChild(dsc);
+  row.appendChild(grp);
 
   const sw = document.createElement('div');
   sw.className = `toggle-switch${active ? ' on' : ''}`;
+  sw.style.flexShrink = '0';
   const knob = document.createElement('div');
   knob.className = 'toggle-knob';
   sw.appendChild(knob);
   row.appendChild(sw);
-
-  row.addEventListener('click', onClick);
   return row;
+}
+
+function buildInlineSettingsPanel() {
+  const panel = document.createElement('div');
+  panel.className = 'settings-inline';
+
+  // ── Rapid Mode ───────────────────────────────────
+  const rapidRow = buildSettingsRow(
+    'Rapid Mode',
+    'Sets a turn timer for each guessing phase',
+    state.rapidMode,
+    () => socket.emit('set-rapid-mode', { enabled: !state.rapidMode, duration: state.rapidDuration || 60 })
+  );
+  panel.appendChild(rapidRow);
+
+  if (state.rapidMode) {
+    const durRow = document.createElement('div');
+    durRow.className = 'duration-row';
+    const durInput = document.createElement('input');
+    durInput.type = 'number';
+    durInput.className = 'duration-input';
+    durInput.value = state.rapidDuration || 60;
+    durInput.min = 15;
+    durInput.max = 300;
+    durInput.step = 5;
+    durInput.addEventListener('click', e => e.stopPropagation());
+    durInput.addEventListener('change', () => {
+      const dur = Math.max(15, Math.min(300, parseInt(durInput.value) || 60));
+      durInput.value = dur;
+      socket.emit('set-rapid-mode', { enabled: true, duration: dur });
+    });
+    durRow.appendChild(document.createTextNode('Timer: '));
+    durRow.appendChild(durInput);
+    durRow.appendChild(document.createTextNode(' sec'));
+    panel.appendChild(durRow);
+  }
+
+  const hr1 = document.createElement('div');
+  hr1.className = 'settings-inline-hr';
+  panel.appendChild(hr1);
+
+  // ── Word Definitions ─────────────────────────────
+  panel.appendChild(buildSettingsRow(
+    'Word Definitions',
+    'Pathfinders can hover words to see their meaning',
+    state.definitionLookup,
+    () => socket.emit('set-definition-mode', { enabled: !state.definitionLookup })
+  ));
+
+  const hr2 = document.createElement('div');
+  hr2.className = 'settings-inline-hr';
+  panel.appendChild(hr2);
+
+  // ── Power-ups ────────────────────────────────────
+  panel.appendChild(buildSettingsRow(
+    'Power-ups',
+    'Seekers can use Peek and Shield relics during play',
+    state.powerupsEnabled !== false,
+    () => socket.emit('set-powerups-mode', { enabled: !(state.powerupsEnabled !== false) })
+  ));
+
+  return panel;
 }
 
 function renderLobbyActions() {
   const wrap = document.createElement('div');
   wrap.className = 'lobby-actions';
 
-  // Begin Expedition button
+  // Top row: Begin Expedition + Game Settings toggle
+  const topRow = document.createElement('div');
+  topRow.className = 'lobby-top-row';
+
   const startBtn = document.createElement('button');
   startBtn.className = 'start-btn';
   startBtn.textContent = 'Begin Expedition';
   startBtn.addEventListener('click', () => socket.emit('start-game'));
-  wrap.appendChild(startBtn);
+  topRow.appendChild(startBtn);
 
-  // Duration input (created first so rapidRow closure can reference it)
-  const durRow = document.createElement('div');
-  durRow.className = 'duration-row';
-  durRow.style.display = state.rapidMode ? '' : 'none';
-  const durInput = document.createElement('input');
-  durInput.type = 'number';
-  durInput.className = 'duration-input';
-  durInput.value = state.rapidDuration || 60;
-  durInput.min = 15;
-  durInput.max = 300;
-  durInput.step = 5;
-  durInput.title = 'Turn timer in seconds (15–300)';
-  durInput.addEventListener('click', e => e.stopPropagation());
-  durInput.addEventListener('change', () => {
-    const dur = Math.max(15, Math.min(300, parseInt(durInput.value) || 60));
-    durInput.value = dur;
-    socket.emit('set-rapid-mode', { enabled: true, duration: dur });
+  const settBtn = document.createElement('button');
+  settBtn.className = `settings-toggle-btn${settingsExpanded ? ' open' : ''}`;
+  settBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Game Settings`;
+  settBtn.addEventListener('click', () => {
+    settingsExpanded = !settingsExpanded;
+    renderActionBar();
   });
-  durRow.appendChild(document.createTextNode('Timer: '));
-  durRow.appendChild(durInput);
-  durRow.appendChild(document.createTextNode(' sec'));
+  topRow.appendChild(settBtn);
 
-  // Rapid mode toggle
-  const rapidRow = buildToggleOption(
-    `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
-    'Rapid Mode',
-    state.rapidMode,
-    () => socket.emit('set-rapid-mode', { enabled: !state.rapidMode, duration: parseInt(durInput.value) || 60 })
-  );
-  wrap.appendChild(rapidRow);
-  wrap.appendChild(durRow);
+  wrap.appendChild(topRow);
 
-  // Definitions toggle
-  const defRow = buildToggleOption(
-    `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
-    'Definitions',
-    state.definitionLookup,
-    () => socket.emit('set-definition-mode', { enabled: !state.definitionLookup })
-  );
-  wrap.appendChild(defRow);
+  // Inline settings panel (shown when expanded)
+  if (settingsExpanded) {
+    wrap.appendChild(buildInlineSettingsPanel());
+  }
 
   actionBar.appendChild(wrap);
 }
@@ -577,64 +619,28 @@ function renderGuessingBar() {
   const bar = document.createElement('div');
   bar.className = 'status-bar';
 
-  const teamColor = state.currentTeam === 'red' ? '#e74c3c' : '#3498db';
-  const isMyTurn  = state.myTeam === state.currentTeam && state.myRole === 'operative';
-  const pu        = state.powerups?.[state.currentTeam];
+  const teamColor  = state.currentTeam === 'red' ? '#e74c3c' : '#3498db';
+  const isMyTurn   = state.myTeam === state.currentTeam && state.myRole === 'operative';
+  const pu         = state.powerups?.[state.currentTeam];
+  const puEnabled  = state.powerupsEnabled !== false;
 
   // Clue display
   if (state.clue) {
     const clueDisp = document.createElement('div');
     clueDisp.className = 'clue-display';
-
     const word = document.createElement('span');
     word.className = 'clue-word-display';
     word.style.color = teamColor;
     word.textContent = state.clue.word;
-
-    // Count is informational only — shown as "for N" hint from pathfinder
     const count = document.createElement('span');
     count.className = 'clue-count-display';
     count.textContent = state.clue.count === 0 ? '' : `for ${state.clue.count}`;
-
     clueDisp.appendChild(word);
     if (state.clue.count !== 0) clueDisp.appendChild(count);
     bar.appendChild(clueDisp);
   }
 
   if (isMyTurn) {
-    // ── Power-ups ──────────────────────────────────
-    if (pu) {
-      const puRow = document.createElement('div');
-      puRow.className = 'powerup-row';
-
-      // Peek button
-      const peekBtn = document.createElement('button');
-      peekBtn.className = `powerup-btn peek-btn${peekMode ? ' active' : ''}${pu.peek <= 0 ? ' used' : ''}`;
-      peekBtn.disabled = pu.peek <= 0;
-      peekBtn.title = 'Peek at one card to see if it is safe';
-      peekBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Peek${pu.peek <= 0 ? ' (used)' : ''}`;
-      peekBtn.addEventListener('click', () => {
-        peekMode = !peekMode;
-        document.body.classList.toggle('peek-mode', peekMode);
-        renderActionBar(); // immediately update button active state
-        renderBoard();     // refresh card click handlers
-      });
-      puRow.appendChild(peekBtn);
-
-      // Shield button
-      const shieldBtn = document.createElement('button');
-      const shieldActive = pu.shieldActive;
-      shieldBtn.className = `powerup-btn shield-btn${shieldActive ? ' active' : ''}${pu.shield <= 0 && !shieldActive ? ' used' : ''}`;
-      shieldBtn.disabled = pu.shield <= 0 && !shieldActive;
-      shieldBtn.title = 'Activate shield to block one bad guess';
-      shieldBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Shield${pu.shield <= 0 && !shieldActive ? ' (used)' : shieldActive ? ' (on)' : ''}`;
-      shieldBtn.addEventListener('click', () => socket.emit('activate-shield'));
-      puRow.appendChild(shieldBtn);
-
-      bar.appendChild(puRow);
-    }
-
-    // End turn button
     const endBtn = document.createElement('button');
     endBtn.className = 'end-turn-btn';
     endBtn.textContent = 'Take a Nap';
@@ -648,15 +654,52 @@ function renderGuessingBar() {
     bar.appendChild(waitMsg);
   }
 
-  // Shield-active banner
-  if (pu?.shieldActive) {
-    const shieldBanner = document.createElement('div');
-    shieldBanner.className = 'shield-banner';
-    shieldBanner.textContent = 'Shield active — next bad guess will be blocked';
-    actionBar.appendChild(shieldBanner);
-  }
-
   actionBar.appendChild(bar);
+
+  // ── Relic cards — only when it's the seeker's turn and power-ups are on ──
+  if (isMyTurn && pu && puEnabled) {
+    const relicRow = document.createElement('div');
+    relicRow.className = 'relic-row';
+
+    // Peek relic
+    const peekSpent = pu.peek <= 0;
+    const peekCard  = document.createElement('div');
+    peekCard.className = `relic-card relic-peek${peekMode ? ' relic-active' : ''}${peekSpent ? ' relic-spent' : ''}`;
+    peekCard.innerHTML = `
+      <div class="relic-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <div class="relic-name">Peek</div>
+      <div class="relic-hint">Reveal a card's nature before committing</div>
+      <div class="relic-status">${peekSpent ? 'Spent' : peekMode ? 'Active — pick a card' : 'Available'}</div>`;
+    if (!peekSpent) {
+      peekCard.addEventListener('click', () => {
+        peekMode = !peekMode;
+        document.body.classList.toggle('peek-mode', peekMode);
+        renderActionBar();
+        renderBoard();
+      });
+    }
+    relicRow.appendChild(peekCard);
+
+    // Shield relic
+    const shieldSpent  = pu.shield <= 0 && !pu.shieldActive;
+    const shieldCard   = document.createElement('div');
+    shieldCard.className = `relic-card relic-shield${pu.shieldActive ? ' relic-active' : ''}${shieldSpent ? ' relic-spent' : ''}`;
+    shieldCard.innerHTML = `
+      <div class="relic-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="relic-name">Shield</div>
+      <div class="relic-hint">Block one bad guess from costing a turn</div>
+      <div class="relic-status">${shieldSpent ? 'Spent' : pu.shieldActive ? 'Active — guarding you' : 'Available'}</div>`;
+    if (!shieldSpent) {
+      shieldCard.addEventListener('click', () => socket.emit('activate-shield'));
+    }
+    relicRow.appendChild(shieldCard);
+
+    actionBar.appendChild(relicRow);
+  }
 }
 
 // ─── Timer ───────────────────────────────────────────

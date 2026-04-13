@@ -62,6 +62,7 @@ function createGame(roomCode) {
     rapidDuration: 60,
     timerEnd: null,
     definitionLookup: false,
+    powerupsEnabled: true,
     _timer: null,
   };
 }
@@ -86,6 +87,7 @@ function getPublicState(game, playerId) {
     rapidDuration: game.rapidDuration,
     timerEnd: game.timerEnd,
     definitionLookup: game.definitionLookup,
+    powerupsEnabled: game.powerupsEnabled,
     players: Object.values(game.players).map(p => ({
       id: p.id,
       name: p.name,
@@ -233,6 +235,13 @@ io.on('connection', (socket) => {
     const game = games[currentRoom];
     if (!game || game.phase !== 'lobby') return;
     game.definitionLookup = !!enabled;
+    broadcastState(game);
+  });
+
+  socket.on('set-powerups-mode', ({ enabled }) => {
+    const game = games[currentRoom];
+    if (!game || game.phase !== 'lobby') return;
+    game.powerupsEnabled = !!enabled;
     broadcastState(game);
   });
 
@@ -387,6 +396,7 @@ io.on('connection', (socket) => {
     const player = game.players[currentPlayerId];
     if (!player || player.role !== 'operative' || player.team !== game.currentTeam) return;
     if (game.phase !== 'guessing') return;
+    if (!game.powerupsEnabled) return;
     if (game.powerups[game.currentTeam].peek <= 0) return;
 
     const card = game.cards[cardId];
@@ -409,6 +419,7 @@ io.on('connection', (socket) => {
     const player = game.players[currentPlayerId];
     if (!player || player.role !== 'operative' || player.team !== game.currentTeam) return;
     if (game.phase !== 'guessing') return;
+    if (!game.powerupsEnabled) return;
     if (game.powerups[game.currentTeam].shield <= 0) return;
 
     game.powerups[game.currentTeam].shieldActive = !game.powerups[game.currentTeam].shieldActive;
