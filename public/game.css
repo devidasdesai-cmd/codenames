@@ -1995,6 +1995,94 @@ body.peek-mode .card.peekable:hover {
    Blue, Neutral, Treasure unchanged — already safe for all common types
 ═══════════════════════════════════════════════════ */
 
+/* ── Token overrides: cascade orange through the whole UI ─── */
+
+/* Dark mode: Red → #D55E00 orange (Wong palette, CVD-safe) */
+body.cb-mode {
+  --red:        #7a3c00;
+  --red-bright: #d55e00;
+  --red-bg:     rgba(213,94,0,0.14);
+  --red-border: rgba(213,94,0,0.38);
+}
+
+/* Light mode: slightly darker orange for sufficient contrast on white */
+[data-theme="light"] body.cb-mode {
+  --red-bright: #b55000;
+  --red-bg:     rgba(181,80,0,0.1);
+  --red-border: rgba(181,80,0,0.35);
+}
+
+/* Turn dot glow (hardcoded box-shadow) */
+body.cb-mode .turn-dot.red {
+  box-shadow: 0 0 6px rgba(213,94,0,0.5);
+  --dot-glow: rgba(213,94,0,0.5);
+}
+
+/* Side panel team header */
+body.cb-mode .red-team .team-header {
+  color: rgba(213,94,0,0.75);
+  border-bottom-color: rgba(213,94,0,0.15);
+}
+
+/* Mobile player chips */
+body.cb-mode .mob-team-red .mob-chip {
+  border-color: rgba(213,94,0,0.32);
+  color: rgba(213,94,0,0.82);
+}
+
+/* Role-change dropdown (hardcoded borders/colors) */
+body.cb-mode .role-change-option.red-sp  { border-color: rgba(213,94,0,0.25); }
+body.cb-mode .role-change-option.red-op  { border-color: rgba(213,94,0,0.12); }
+body.cb-mode .role-change-option.red-op:hover {
+  border-color: rgba(213,94,0,0.35);
+  background: rgba(213,94,0,0.06);
+  color: rgba(213,94,0,0.85);
+}
+body.cb-mode .role-change-option.active.red-op {
+  background: rgba(213,94,0,0.06);
+  border-color: rgba(213,94,0,0.3);
+  color: rgba(213,94,0,0.85);
+}
+
+/* Role selection overlay */
+body.cb-mode .role-btn-red-sp { border-color: rgba(213,94,0,0.35); background: rgba(180,80,0,0.1); }
+body.cb-mode .role-btn-red-op { border-color: rgba(213,94,0,0.2);  background: rgba(180,80,0,0.06); }
+
+/* Peek-danger glow: tile is now orange, so ring should be orange too */
+body.cb-mode .card.peek-danger {
+  box-shadow: 0 0 0 2.5px rgba(213,94,0,0.7), 0 0 14px rgba(213,94,0,0.22);
+  border-color: rgba(213,94,0,0.7) !important;
+}
+
+/* ── Light-mode overrides for hardcoded values ───────────── */
+
+[data-theme="light"] body.cb-mode .red-team .team-header {
+  color: rgba(181,80,0,0.8);
+  border-bottom-color: rgba(181,80,0,0.15);
+}
+[data-theme="light"] body.cb-mode .mob-team-red .mob-chip {
+  border-color: rgba(181,80,0,0.32);
+  color: rgba(181,80,0,0.82);
+}
+[data-theme="light"] body.cb-mode .role-change-option.red-sp  { border-color: rgba(181,80,0,0.25); }
+[data-theme="light"] body.cb-mode .role-change-option.red-op  { border-color: rgba(181,80,0,0.12); }
+[data-theme="light"] body.cb-mode .role-change-option.red-op:hover {
+  border-color: rgba(181,80,0,0.35);
+  background: rgba(181,80,0,0.06);
+  color: rgba(181,80,0,0.85);
+}
+[data-theme="light"] body.cb-mode .role-change-option.active.red-op {
+  background: rgba(181,80,0,0.06);
+  border-color: rgba(181,80,0,0.3);
+  color: rgba(181,80,0,0.85);
+}
+[data-theme="light"] body.cb-mode .role-btn-red-sp { border-color: rgba(181,80,0,0.35); background: rgba(181,80,0,0.1); }
+[data-theme="light"] body.cb-mode .role-btn-red-op { border-color: rgba(181,80,0,0.2);  background: rgba(181,80,0,0.06); }
+[data-theme="light"] body.cb-mode .card.peek-danger {
+  box-shadow: 0 0 0 2.5px rgba(181,80,0,0.7), 0 0 14px rgba(181,80,0,0.22);
+  border-color: rgba(181,80,0,0.7) !important;
+}
+
 /* ── Dark mode ───────────────────────────────────── */
 
 /* Red → Orange */
