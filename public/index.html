@@ -243,29 +243,47 @@
 
     /* ── Light Mode ── */
     [data-theme="light"] {
-      --bg:      #eeecdf;
-      --surface: #f7f5ec;
-      --surface2:#e8e5d5;
-      --border:  rgba(80,60,20,0.1);
-      --border2: rgba(80,60,20,0.18);
-      --border-gold: rgba(140,100,20,0.35);
-      --text:    #1e1c14;
-      --text-muted: #7a7258;
-      --text-dim:#5a5440;
-      --gold:    #8c6614;
-      --gold-bright: #c0952c;
+      --bg:        #f0f2f8;
+      --surface:   #ffffff;
+      --surface2:  #e8ecf5;
+      --border:    rgba(0,0,0,0.08);
+      --border2:   rgba(0,0,0,0.14);
+      --border-gold: rgba(150,110,20,0.4);
+      --text:      #0c0d18;
+      --text-muted:#3c4268;
+      --text-dim:  #252a50;
+      --gold:      #7a5c0e;
+      --gold-bright:#a07820;
+    }
+
+    [data-theme="light"] .field input,
+    [data-theme="light"] .join-row input {
+      background: #e8ecf5;
+      border-color: rgba(0,0,0,0.14);
     }
 
     [data-theme="light"] .field input:focus,
     [data-theme="light"] .join-row input:focus {
-      border-color: rgba(140,100,20,0.4);
-      box-shadow: 0 0 0 3px rgba(140,100,20,0.06);
+      border-color: rgba(150,110,20,0.5);
+      box-shadow: 0 0 0 3px rgba(150,110,20,0.07);
+    }
+
+    [data-theme="light"] .panel {
+      background: #ffffff;
+      border-color: rgba(0,0,0,0.12);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    [data-theme="light"] .btn-secondary {
+      background: #e8ecf5;
+      border-color: rgba(0,0,0,0.14);
+      color: var(--text-dim);
     }
 
     [data-theme="light"] .btn-secondary:hover {
-      border-color: rgba(140,100,20,0.35);
+      border-color: rgba(150,110,20,0.45);
       color: var(--text);
-      background: rgba(140,100,20,0.05);
+      background: rgba(150,110,20,0.06);
     }
 
     /* ── Theme Toggle ── */

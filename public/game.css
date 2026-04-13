@@ -1328,6 +1328,8 @@ body.peek-mode .card.peekable:hover {
   justify-content: center;
   pointer-events: none;
   opacity: 0;
+  /* Solid dark base fills the entire screen — no see-through edges */
+  background: rgba(4,3,9,0.92);
 }
 
 .event-anim.visible { animation: event-lifecycle 5s ease forwards; }
@@ -1339,47 +1341,50 @@ body.peek-mode .card.peekable:hover {
   100% { opacity: 0; }
 }
 
+/* Colored radial overlay sits on top of the dark base */
 .event-anim-bg {
   position: absolute;
   inset: 0;
 }
 
 .treasure-bg {
-  background: radial-gradient(ellipse at center, rgba(210,165,30,0.55) 0%, rgba(130,90,5,0.35) 40%, rgba(30,20,5,0.0) 75%);
+  background: radial-gradient(ellipse at center,
+    rgba(210,165,30,0.55) 0%,
+    rgba(150,100,10,0.35) 45%,
+    transparent 75%);
 }
 
 .abyss-bg {
-  background: radial-gradient(ellipse at center, rgba(90,10,160,0.65) 0%, rgba(40,5,80,0.45) 40%, rgba(5,2,12,0.0) 75%);
+  background: radial-gradient(ellipse at center,
+    rgba(100,15,180,0.65) 0%,
+    rgba(50,5,100,0.45) 45%,
+    transparent 75%);
 }
 
+/* Content floats centered — no card box */
 .event-anim-card {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.6rem;
-  padding: 2.5rem 3.5rem;
-  background: rgba(10,8,20,0.55);
-  border-radius: 22px;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.07);
-  box-shadow: 0 0 60px rgba(0,0,0,0.4);
-  animation: event-card-rise 0.55s cubic-bezier(0.34,1.56,0.64,1) both;
+  gap: 0.75rem;
+  padding: 0;
+  animation: event-content-rise 0.55s cubic-bezier(0.34,1.56,0.64,1) both;
 }
 
-@keyframes event-card-rise {
-  from { transform: scale(0.82) translateY(20px); opacity: 0; }
-  to   { transform: scale(1)    translateY(0);    opacity: 1; }
+@keyframes event-content-rise {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
 .event-anim-icon {
-  font-size: 3.2rem;
+  font-size: 4rem;
   display: block;
   animation: event-icon-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.12s both;
 }
 
 @keyframes event-icon-pop {
-  from { transform: scale(0.5) rotate(-15deg); opacity: 0; }
+  from { transform: scale(0.4) rotate(-15deg); opacity: 0; }
   to   { transform: scale(1)   rotate(0deg);   opacity: 1; }
 }
 
@@ -1393,7 +1398,7 @@ body.peek-mode .card.peekable:hover {
 
 .event-anim-title {
   font-family: 'Playfair Display', serif;
-  font-size: 2rem;
+  font-size: 2.4rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   animation: event-rise 0.4s ease 0.28s both;
@@ -1401,7 +1406,7 @@ body.peek-mode .card.peekable:hover {
 
 .event-anim-sub {
   font-family: 'Playfair Display', serif;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-style: italic;
   letter-spacing: 0.04em;
   animation: event-rise 0.4s ease 0.38s both;
@@ -1412,18 +1417,19 @@ body.peek-mode .card.peekable:hover {
   100% { opacity: 1; transform: translateY(0); }
 }
 
-.treasure-title { color: #2a1800; }
-.treasure-sub   { color: rgba(30,16,0,0.65); }
+/* Treasure: warm white text on dark gold-tinted overlay */
+.treasure-title { color: #fff4d6; text-shadow: 0 2px 24px rgba(210,160,20,0.6), 0 0 60px rgba(180,130,10,0.3); }
+.treasure-sub   { color: rgba(255,230,160,0.78); }
 
 .abyss-title {
   color: #f0e8ff;
-  animation: event-rise 0.4s ease 0.38s both, abyss-glow 2s ease-in-out 1s infinite alternate;
+  animation: event-rise 0.4s ease 0.28s both, abyss-glow 2s ease-in-out 1s infinite alternate;
 }
 @keyframes abyss-glow {
-  from { text-shadow: 0 0 24px rgba(160,80,255,0.7), 0 0 50px rgba(100,0,200,0.35); }
-  to   { text-shadow: 0 0 44px rgba(200,110,255,1),  0 0 90px rgba(140,0,230,0.6); }
+  from { text-shadow: 0 0 28px rgba(160,80,255,0.75), 0 0 60px rgba(100,0,200,0.35); }
+  to   { text-shadow: 0 0 50px rgba(210,110,255,1),   0 0 100px rgba(140,0,230,0.55); }
 }
-.abyss-sub { color: rgba(210,190,255,0.72); }
+.abyss-sub { color: rgba(215,195,255,0.75); }
 
 /* ═══════════════════════════════════════════════════
    THEME TOGGLE BUTTON
@@ -1525,76 +1531,115 @@ body.peek-mode .card.peekable:hover {
 }
 
 /* ═══════════════════════════════════════════════════
-   LIGHT MODE — Antiqued parchment
+   LIGHT MODE — Clean, high-contrast
 ═══════════════════════════════════════════════════ */
 [data-theme="light"] {
-  --bg:        #eeecdf;
-  --surface:   #f7f5ec;
-  --surface2:  #e8e5d5;
-  --surface3:  #f0ede0;
-  --surface4:  #dddac8;
-  --border:    rgba(80,60,20,0.1);
-  --border2:   rgba(80,60,20,0.18);
-  --border-gold: rgba(140,100,20,0.35);
-  --text:      #1e1c14;
-  --text-muted:#7a7258;
-  --text-dim:  #5a5440;
-  --gold:      #8c6614;
-  --gold-mid:  #a07820;
-  --gold-bright:#c0952c;
-  --red-bright: #a52828;
-  --blue-bright: #1e5080;
+  --bg:          #f0f2f8;
+  --surface:     #ffffff;
+  --surface2:    #e8ecf5;
+  --surface3:    #f5f6fb;
+  --surface4:    #dde0ee;
+  --border:      rgba(0,0,0,0.08);
+  --border2:     rgba(0,0,0,0.14);
+  --border-gold: rgba(150,110,20,0.4);
+  /* Text — dark and clearly readable */
+  --text:        #0c0d18;
+  --text-muted:  #3c4268;
+  --text-dim:    #252a50;
+  /* Gold — deeper so it reads on white */
+  --gold:        #7a5c0e;
+  --gold-mid:    #8c6c14;
+  --gold-bright: #a07820;
+  /* Faction colors — deep enough for AA contrast on white */
+  --red-bright:  #8c1818;
+  --blue-bright: #154070;
+  --red-bg:      rgba(140,24,24,0.08);
+  --red-border:  rgba(140,24,24,0.3);
+  --blue-bg:     rgba(21,64,112,0.08);
+  --blue-border: rgba(21,64,112,0.3);
 }
 
 [data-theme="light"] body::before {
-  background: radial-gradient(ellipse at 50% 0%, rgba(140,100,20,0.05) 0%, transparent 65%);
+  background: radial-gradient(ellipse at 50% 0%, rgba(21,64,112,0.04) 0%, transparent 65%);
 }
 
+/* Cards: clean light grey medallions */
 [data-theme="light"] .card {
-  background: radial-gradient(circle at 40% 35%, #ddd9c5, #ccc8b0 80%);
-  border-color: rgba(80,60,20,0.15);
+  background: radial-gradient(circle at 40% 35%, #e8eaf4, #d8dae8 80%);
+  border-color: rgba(0,0,0,0.12);
   box-shadow:
-    inset 0 0 0 6px rgba(255,255,255,0.3),
-    inset 0 1px 0 rgba(255,255,255,0.5),
-    inset 0 -1px 0 rgba(0,0,0,0.08),
-    0 2px 8px rgba(0,0,0,0.12);
+    inset 0 0 0 6px rgba(255,255,255,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.8),
+    inset 0 -1px 0 rgba(0,0,0,0.06),
+    0 2px 8px rgba(0,0,0,0.1);
 }
 
-[data-theme="light"] .card-word { color: #1e1c14; text-shadow: 0 1px 2px rgba(255,255,255,0.5); }
+[data-theme="light"] .card-word {
+  color: #0c0d18;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.7);
+}
 
 [data-theme="light"] .card.hint-red {
-  background: radial-gradient(circle at 40% 35%, rgba(160,40,40,0.15), rgba(210,200,180,0.9) 80%);
-  border-color: rgba(165,40,40,0.42);
+  background: radial-gradient(circle at 40% 35%, rgba(140,24,24,0.14), #dde0ee 80%);
+  border-color: rgba(140,24,24,0.4);
+  box-shadow: inset 0 0 0 6px rgba(140,24,24,0.05), 0 2px 8px rgba(0,0,0,0.1);
 }
 [data-theme="light"] .card.hint-blue {
-  background: radial-gradient(circle at 40% 35%, rgba(30,80,128,0.15), rgba(210,200,180,0.9) 80%);
-  border-color: rgba(30,80,128,0.42);
+  background: radial-gradient(circle at 40% 35%, rgba(21,64,112,0.14), #dde0ee 80%);
+  border-color: rgba(21,64,112,0.4);
+  box-shadow: inset 0 0 0 6px rgba(21,64,112,0.05), 0 2px 8px rgba(0,0,0,0.1);
 }
 [data-theme="light"] .card.hint-abyss {
-  background: radial-gradient(circle at 40% 35%, rgba(60,20,100,0.18), rgba(200,195,178,0.9) 80%);
-  border-color: rgba(60,20,100,0.3);
+  background: radial-gradient(circle at 40% 35%, rgba(50,15,90,0.12), #dde0ee 80%);
+  border-color: rgba(50,15,90,0.3);
+  box-shadow: inset 0 0 0 6px rgba(50,15,90,0.04), 0 2px 8px rgba(0,0,0,0.1);
 }
 [data-theme="light"] .card.hint-treasure {
-  background: radial-gradient(circle at 40% 35%, rgba(140,100,20,0.2), rgba(210,200,180,0.9) 80%);
-  border-color: rgba(140,100,20,0.45);
+  background: radial-gradient(circle at 40% 35%, rgba(140,100,14,0.14), #dde0ee 80%);
+  border-color: rgba(140,100,14,0.45);
+  box-shadow: inset 0 0 0 6px rgba(140,100,14,0.05), 0 2px 8px rgba(0,0,0,0.1);
 }
 
-[data-theme="light"] .card.hint-red .card-word      { color: rgba(165,40,40,0.88); }
-[data-theme="light"] .card.hint-blue .card-word     { color: rgba(30,80,128,0.88); }
-[data-theme="light"] .card.hint-abyss .card-word    { color: rgba(60,20,100,0.38); }
-[data-theme="light"] .card.hint-treasure .card-word { color: rgba(120,80,10,0.9); }
+[data-theme="light"] .card.hint-red .card-word      { color: #8c1818; }
+[data-theme="light"] .card.hint-blue .card-word     { color: #154070; }
+[data-theme="light"] .card.hint-abyss .card-word    { color: rgba(50,15,90,0.5); }
+[data-theme="light"] .card.hint-treasure .card-word { color: #7a5c0e; }
 
-[data-theme="light"] .card.revealed-neutral { background: radial-gradient(circle at 50% 50%, #c8c4ae, #bbb7a0); opacity: 0.45; }
-[data-theme="light"] .card.revealed-abyss   { opacity: 0.75; }
+[data-theme="light"] .card.revealed-neutral {
+  background: radial-gradient(circle at 50% 50%, #c8cad8, #b8bace);
+  opacity: 0.45;
+}
+[data-theme="light"] .card.revealed-abyss { opacity: 0.8; }
 
-[data-theme="light"] .overlay { background: rgba(20,16,8,0.6); }
-[data-theme="light"] .player-chip .role-badge { background: rgba(0,0,0,0.05); }
-[data-theme="light"] .spy-btn:hover { border-color: rgba(0,0,0,0.18); }
-[data-theme="light"] ::-webkit-scrollbar-track { background: #d8d4be; }
-[data-theme="light"] ::-webkit-scrollbar-thumb { background: #b0aa88; }
+[data-theme="light"] .overlay { background: rgba(10,12,28,0.65); }
+[data-theme="light"] .player-chip .role-badge { background: rgba(0,0,0,0.06); color: var(--text-muted); }
+[data-theme="light"] .spy-btn:hover { border-color: rgba(0,0,0,0.2); }
+[data-theme="light"] ::-webkit-scrollbar-track { background: #d8daea; }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: #b0b4cc; }
 
-[data-theme="light"] .red-team .team-header  { color: rgba(165,40,40,0.7); border-bottom-color: rgba(165,40,40,0.18); }
-[data-theme="light"] .blue-team .team-header { color: rgba(30,80,128,0.7); border-bottom-color: rgba(30,80,128,0.18); }
-[data-theme="light"] .my-role-bar:hover { border-color: rgba(140,100,20,0.4); }
-[data-theme="light"] .role-change-dropdown { border-color: rgba(140,100,20,0.35); }
-[data-theme="light"] .word-tooltip { box-shadow: 0 6px 22px rgba(0,0,0,0.15); }
+[data-theme="light"] .red-team .team-header  { color: #8c1818; border-bottom-color: rgba(140,24,24,0.18); }
+[data-theme="light"] .blue-team .team-header { color: #154070; border-bottom-color: rgba(21,64,112,0.18); }
+
+[data-theme="light"] .my-role-bar:hover { border-color: rgba(140,100,14,0.45); }
+[data-theme="light"] .role-change-dropdown { border-color: rgba(140,100,14,0.38); }
+[data-theme="light"] .word-tooltip { box-shadow: 0 6px 22px rgba(0,0,0,0.13); }
+
+[data-theme="light"] .turn-indicator { background: #e8ecf5; border-color: rgba(0,0,0,0.12); color: var(--text-dim); }
+[data-theme="light"] .log-entry { color: var(--text-muted); border-bottom-color: rgba(0,0,0,0.07); }
+[data-theme="light"] .log-entry:first-child { color: var(--text-dim); }
+[data-theme="light"] .waiting-msg { color: var(--text-muted); }
+[data-theme="light"] .clue-count-display { color: var(--text-muted); }
+[data-theme="light"] .guesses-left { background: #e8ecf5; border-color: rgba(0,0,0,0.1); color: var(--text-muted); }
+[data-theme="light"] .room-code-badge { background: #e8ecf5; border-color: rgba(0,0,0,0.12); }
+[data-theme="light"] .rapid-toggle { background: #e8ecf5; border-color: rgba(0,0,0,0.14); color: var(--text-muted); }
+[data-theme="light"] .rapid-toggle:hover { border-color: rgba(0,0,0,0.25); color: var(--text); background: #dde0ee; }
+[data-theme="light"] .rapid-toggle.active { background: rgba(140,100,14,0.1); border-color: rgba(140,100,14,0.4); color: var(--gold-bright); }
+[data-theme="light"] .end-turn-btn { background: #e8ecf5; border-color: rgba(0,0,0,0.14); color: var(--text-dim); }
+[data-theme="light"] .end-turn-btn:hover { border-color: rgba(0,0,0,0.25); color: var(--text); }
+[data-theme="light"] .powerup-btn { background: #e8ecf5; border-color: rgba(0,0,0,0.14); color: var(--text-dim); }
+[data-theme="light"] .powerup-btn:not(:disabled):hover { color: var(--text); border-color: rgba(0,0,0,0.25); }
+[data-theme="light"] .shield-banner { color: #155a38; background: rgba(21,90,56,0.08); border-color: rgba(21,90,56,0.25); }
+[data-theme="light"] .header { background: #ffffff; border-bottom-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .panel { background: #f5f6fb; border-right-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .player-chip { background: #e8ecf5; border-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .player-chip.spymaster .role-badge { background: rgba(140,100,14,0.12); color: var(--gold-mid); border-color: rgba(140,100,14,0.25); }
