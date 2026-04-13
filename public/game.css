@@ -100,7 +100,7 @@ body::before {
 
 /* Brand mark */
 .logo-sm {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 1.2rem;
   letter-spacing: 0.04em;
   background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 100%);
@@ -163,7 +163,7 @@ body::before {
 }
 
 .score-label {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   color: var(--text-muted);
@@ -180,7 +180,7 @@ body::before {
 }
 
 .score-num {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 1.55rem;
   font-weight: 700;
   min-width: 2ch;
@@ -260,7 +260,7 @@ body::before {
   background: var(--surface4);
 }
 
-.role-bar-team  { font-weight: 700; font-family: 'Playfair Display', serif; letter-spacing: 0.03em; }
+.role-bar-team  { font-weight: 700; font-family: 'Inter', sans-serif; letter-spacing: 0.03em; }
 .role-bar-divider { color: var(--text-muted); font-size: 0.65rem; }
 .role-bar-role  { color: var(--text-dim); font-weight: 500; }
 .role-bar-chevron { color: var(--text-muted); flex-shrink: 0; transition: transform 0.2s; }
@@ -388,7 +388,7 @@ body::before {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.78rem;
   letter-spacing: 0.04em;
   color: var(--text-muted);
@@ -529,7 +529,7 @@ body::before {
   border-radius: 10px;
   border: 1.5px solid var(--border2);
   cursor: pointer;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -569,7 +569,7 @@ body::before {
   color: #1a1200;
   border: none;
   border-radius: 10px;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
   font-size: 0.92rem;
   letter-spacing: 0.04em;
@@ -619,7 +619,7 @@ body::before {
 }
 
 .clue-label {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
   letter-spacing: 0.06em;
   color: var(--text-dim);
@@ -678,7 +678,7 @@ body::before {
   color: #1a1200;
   border: none;
   border-radius: 8px;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
   font-size: 0.85rem;
   letter-spacing: 0.03em;
@@ -707,7 +707,7 @@ body::before {
 }
 
 .clue-word-display {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 1.45rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -751,7 +751,7 @@ body::before {
 .end-turn-btn:active { transform: scale(0.97); }
 
 .waiting-msg {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.82rem;
   color: var(--text-muted);
   font-style: italic;
@@ -763,7 +763,7 @@ body::before {
 .rapid-timer {
   flex-shrink: 0;
   text-align: center;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 1.55rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -1133,7 +1133,7 @@ body.peek-mode .card.peekable:hover {
 }
 
 .log-entry:first-child {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-style: italic;
   color: var(--text-dim);
   font-size: 0.75rem;
@@ -1168,14 +1168,14 @@ body.peek-mode .card.peekable:hover {
 .winner-icon { font-size: 2.8rem; margin-bottom: 0.7rem; }
 
 .overlay-card h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 2rem;
   margin-bottom: 0.45rem;
   letter-spacing: 0.02em;
 }
 
 .overlay-card p {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   color: var(--text-muted);
   margin-bottom: 2rem;
   font-size: 0.88rem;
@@ -1189,7 +1189,7 @@ body.peek-mode .card.peekable:hover {
   border: 1.5px solid var(--border-gold);
   border-radius: 10px;
   color: var(--gold-bright);
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
   font-size: 0.92rem;
   letter-spacing: 0.04em;
@@ -1217,7 +1217,7 @@ body.peek-mode .card.peekable:hover {
 }
 
 .role-overlay-card h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 1.8rem;
   margin-bottom: 0.5rem;
   letter-spacing: 0.03em;
@@ -1228,7 +1228,7 @@ body.peek-mode .card.peekable:hover {
 }
 
 .role-overlay-card .role-subtitle {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
   font-style: italic;
   color: var(--text-muted);
@@ -1261,7 +1261,7 @@ body.peek-mode .card.peekable:hover {
 .role-btn:active { transform: scale(0.97); }
 
 .role-btn-team {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -1269,7 +1269,7 @@ body.peek-mode .card.peekable:hover {
   opacity: 0.7;
 }
 .role-btn-name {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--text);
@@ -1311,7 +1311,7 @@ body.peek-mode .card.peekable:hover {
   border: 1px solid var(--border-gold);
   border-radius: 10px;
   padding: 0.6rem 0.9rem;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.78rem;
   font-style: italic;
   line-height: 1.5;
@@ -1405,7 +1405,7 @@ body.peek-mode .card.peekable:hover {
 }
 
 .event-anim-title {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 2.4rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -1413,7 +1413,7 @@ body.peek-mode .card.peekable:hover {
 }
 
 .event-anim-sub {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 1rem;
   font-style: italic;
   letter-spacing: 0.04em;
