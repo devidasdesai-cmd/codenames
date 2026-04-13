@@ -7,8 +7,7 @@ let playerId = params.get('pid');
 if (!roomCode || !playerId) window.location.href = '/';
 
 let state = null;
-let peekMode = false;           // client-only: waiting for card click to peek
-let settingsExpanded = false;   // client-only: lobby settings panel open
+let peekMode = false;  // client-only: waiting for card click to peek
 let peekResults = {};       // cardId → { color, expires }
 let timerInterval = null;   // setInterval handle for countdown
 let abyssAnimating = false; // delay winner overlay until abyss animation finishes
@@ -33,6 +32,29 @@ const winnerTitle      = document.getElementById('winner-title');
 const winnerSub        = document.getElementById('winner-sub');
 const winnerIcon       = document.getElementById('winner-icon');
 const mobilePlayers    = document.getElementById('mobile-players');
+const settingsOverlay  = document.getElementById('settings-overlay');
+
+// ─── Settings overlay ────────────────────────────────
+document.getElementById('settings-overlay-close').addEventListener('click', closeSettingsOverlay);
+settingsOverlay.addEventListener('click', e => { if (e.target === settingsOverlay) closeSettingsOverlay(); });
+
+function openSettingsOverlay() {
+  refreshSettingsOverlayBody();
+  settingsOverlay.style.display = 'flex';
+  renderActionBar(); // update button's .open class
+}
+
+function closeSettingsOverlay() {
+  settingsOverlay.style.display = 'none';
+  renderActionBar(); // remove button's .open class
+}
+
+function refreshSettingsOverlayBody() {
+  const body = document.getElementById('settings-overlay-body');
+  if (!body || !state) return;
+  body.innerHTML = '';
+  body.appendChild(buildSettingsContent());
+}
 
 // ─── Copy invite link ────────────────────────────────
 document.getElementById('copy-link-btn').addEventListener('click', () => {
@@ -178,6 +200,9 @@ function render() {
   renderTimer();
   renderLog();
   renderOverlay();
+
+  // Keep settings overlay content fresh while it's open
+  if (settingsOverlay.style.display !== 'none') refreshSettingsOverlayBody();
 }
 
 // ─── Header right ─────────────────────────────────────
@@ -448,7 +473,7 @@ function buildSettingsRow(label, desc, active, onClick) {
   return row;
 }
 
-function buildInlineSettingsPanel() {
+function buildSettingsContent() {
   const panel = document.createElement('div');
   panel.className = 'settings-inline';
 
@@ -514,31 +539,18 @@ function renderLobbyActions() {
   const wrap = document.createElement('div');
   wrap.className = 'lobby-actions';
 
-  // Top row: Begin Expedition + Game Settings toggle
-  const topRow = document.createElement('div');
-  topRow.className = 'lobby-top-row';
-
   const startBtn = document.createElement('button');
   startBtn.className = 'start-btn';
   startBtn.textContent = 'Begin Expedition';
   startBtn.addEventListener('click', () => socket.emit('start-game'));
-  topRow.appendChild(startBtn);
+  wrap.appendChild(startBtn);
 
-  const settBtn = document.createElement('button');
-  settBtn.className = `settings-toggle-btn${settingsExpanded ? ' open' : ''}`;
+  const settOpen = settingsOverlay.style.display !== 'none';
+  const settBtn  = document.createElement('button');
+  settBtn.className = `settings-toggle-btn${settOpen ? ' open' : ''}`;
   settBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Game Settings`;
-  settBtn.addEventListener('click', () => {
-    settingsExpanded = !settingsExpanded;
-    renderActionBar();
-  });
-  topRow.appendChild(settBtn);
-
-  wrap.appendChild(topRow);
-
-  // Inline settings panel (shown when expanded)
-  if (settingsExpanded) {
-    wrap.appendChild(buildInlineSettingsPanel());
-  }
+  settBtn.addEventListener('click', openSettingsOverlay);
+  wrap.appendChild(settBtn);
 
   actionBar.appendChild(wrap);
 }
