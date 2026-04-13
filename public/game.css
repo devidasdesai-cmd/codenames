@@ -372,7 +372,10 @@ body::before {
 ═══════════════════════════════════════════════════ */
 .panel {
   width: 190px;
+  min-width: 140px;
+  max-width: 320px;
   flex-shrink: 0;
+  position: relative;
   background: var(--surface3);
   border-right: 1px solid var(--border);
   padding: 1rem 0.875rem;
@@ -380,6 +383,23 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
+}
+
+/* Drag-to-resize handle on right edge of left panel */
+.panel-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 20;
+  background: transparent;
+  transition: background 0.15s;
+}
+.panel-resize-handle:hover,
+.panel-resize-handle.dragging {
+  background: rgba(184,146,58,0.35);
 }
 
 .team-panel { }

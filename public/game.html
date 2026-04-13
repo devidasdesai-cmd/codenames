@@ -45,6 +45,7 @@
   <main class="main">
     <!-- Left panel: team roster -->
     <aside class="panel panel-left" id="panel-left">
+      <div class="panel-resize-handle" id="panel-resize"></div>
       <div class="team-panel red-team">
         <div class="team-header">
           <span class="team-dot red"></span> Red Team
@@ -127,5 +128,40 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/game.js"></script>
+  <script>
+    (function () {
+      const panel  = document.getElementById('panel-left');
+      const handle = document.getElementById('panel-resize');
+      if (!panel || !handle) return;
+
+      // Restore saved width
+      const saved = localStorage.getItem('wordhunt-panel-width');
+      if (saved) panel.style.width = saved + 'px';
+
+      let startX, startW;
+
+      handle.addEventListener('mousedown', function (e) {
+        e.preventDefault();
+        startX = e.clientX;
+        startW = panel.getBoundingClientRect().width;
+        handle.classList.add('dragging');
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
+
+      function onMove(e) {
+        const dx   = e.clientX - startX;
+        const newW = Math.max(140, Math.min(320, startW + dx));
+        panel.style.width = newW + 'px';
+      }
+
+      function onUp() {
+        handle.classList.remove('dragging');
+        localStorage.setItem('wordhunt-panel-width', Math.round(panel.getBoundingClientRect().width));
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      }
+    })();
+  </script>
 </body>
 </html>
