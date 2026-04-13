@@ -950,17 +950,21 @@ body.peek-mode .card.peekable:hover {
 }
 
 .card.hint-blue {
-  background: radial-gradient(circle at 40% 35%, rgba(27,74,122,0.3), rgba(5,8,18,0.95) 80%);
-  border-color: rgba(36,113,163,0.52);
+  background: radial-gradient(circle at 40% 35%, rgba(27,90,155,0.45), rgba(5,12,30,0.96) 80%);
+  border-color: rgba(36,130,200,0.65);
   box-shadow:
-    inset 0 0 0 6px rgba(36,113,163,0.07),
-    inset 0 1px 0 rgba(255,255,255,0.04),
+    inset 0 0 0 6px rgba(36,130,200,0.1),
+    inset 0 1px 0 rgba(80,160,255,0.07),
     0 3px 10px rgba(0,0,0,0.55);
 }
 
+/* Neutral: warm stone — clearly distinct from the blue faction */
 .card.hint-neutral {
-  background: radial-gradient(circle at 40% 35%, #1a1d34, #0d0f1e 80%);
-  border-color: var(--border2);
+  background: radial-gradient(circle at 40% 35%, #2e2b26, #1a1714 80%);
+  border-color: rgba(140,128,108,0.35);
+  box-shadow:
+    inset 0 0 0 6px rgba(140,128,108,0.04),
+    0 3px 10px rgba(0,0,0,0.55);
 }
 
 .card.hint-abyss {
@@ -981,8 +985,9 @@ body.peek-mode .card.peekable:hover {
 }
 
 /* Word tint for spymasters */
-.card.hint-red .card-word      { color: rgba(192,57,43,0.88); }
-.card.hint-blue .card-word     { color: rgba(36,113,163,0.88); }
+.card.hint-red .card-word      { color: rgba(210,70,55,0.92); }
+.card.hint-blue .card-word     { color: rgba(60,155,230,0.92); }
+.card.hint-neutral .card-word  { color: rgba(160,148,128,0.75); }
 .card.hint-abyss .card-word    { color: rgba(160,80,220,0.28); }
 .card.hint-treasure .card-word { color: rgba(184,146,58,0.9); }
 
@@ -1055,8 +1060,8 @@ body.peek-mode .card.peekable:hover {
   opacity: 0.8;
 }
 .card.revealed-abyss .card-word {
-  color: rgba(180,100,255,0.18);
-  text-shadow: 0 0 6px rgba(140,60,220,0.3);
+  color: rgba(190,140,255,0.65);
+  text-shadow: 0 0 8px rgba(140,60,220,0.5);
 }
 
 /* Treasure: antique gold */
@@ -1585,9 +1590,14 @@ body.peek-mode .card.peekable:hover {
   box-shadow: inset 0 0 0 6px rgba(140,24,24,0.05), 0 2px 8px rgba(0,0,0,0.1);
 }
 [data-theme="light"] .card.hint-blue {
-  background: radial-gradient(circle at 40% 35%, rgba(21,64,112,0.14), #dde0ee 80%);
-  border-color: rgba(21,64,112,0.4);
-  box-shadow: inset 0 0 0 6px rgba(21,64,112,0.05), 0 2px 8px rgba(0,0,0,0.1);
+  background: radial-gradient(circle at 40% 35%, rgba(21,64,112,0.2), #dde0ee 80%);
+  border-color: rgba(21,64,112,0.55);
+  box-shadow: inset 0 0 0 6px rgba(21,64,112,0.07), 0 2px 8px rgba(0,0,0,0.1);
+}
+[data-theme="light"] .card.hint-neutral {
+  background: radial-gradient(circle at 40% 35%, rgba(100,90,72,0.12), #dde0ee 80%);
+  border-color: rgba(110,100,80,0.35);
+  box-shadow: inset 0 0 0 6px rgba(100,90,72,0.04), 0 2px 8px rgba(0,0,0,0.1);
 }
 [data-theme="light"] .card.hint-abyss {
   background: radial-gradient(circle at 40% 35%, rgba(50,15,90,0.12), #dde0ee 80%);
@@ -1602,6 +1612,7 @@ body.peek-mode .card.peekable:hover {
 
 [data-theme="light"] .card.hint-red .card-word      { color: #8c1818; }
 [data-theme="light"] .card.hint-blue .card-word     { color: #154070; }
+[data-theme="light"] .card.hint-neutral .card-word  { color: rgba(90,78,60,0.7); }
 [data-theme="light"] .card.hint-abyss .card-word    { color: rgba(50,15,90,0.5); }
 [data-theme="light"] .card.hint-treasure .card-word { color: #7a5c0e; }
 
