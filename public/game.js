@@ -273,8 +273,27 @@ function renderHeaderRight() {
       btn.className = `role-change-option ${opt.css}`;
       if (state.myTeam === opt.team && state.myRole === opt.role) btn.classList.add('active');
       btn.textContent = opt.label;
-      btn.addEventListener('click', () => socket.emit('set-team', { team: opt.team, role: opt.role }));
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        wrap.classList.remove('open');
+        socket.emit('set-team', { team: opt.team, role: opt.role });
+      });
       dropdown.appendChild(btn);
+    });
+
+    // Click badge to toggle dropdown; click outside to close
+    badge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = wrap.classList.toggle('open');
+      if (isOpen) {
+        function closeDropdown(ev) {
+          if (!wrap.contains(ev.target)) {
+            wrap.classList.remove('open');
+            document.removeEventListener('click', closeDropdown);
+          }
+        }
+        document.addEventListener('click', closeDropdown);
+      }
     });
 
     wrap.appendChild(badge);
