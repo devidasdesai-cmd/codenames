@@ -769,8 +769,8 @@ function renderGuessingBar() {
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       </div>
       <div class="relic-name">Peek</div>
-      <div class="relic-hint">Reveal a card's nature before committing</div>
-      <div class="relic-status">${peekSpent ? 'Spent' : peekMode ? 'Active — pick a card' : 'Available'}</div>`;
+      <div class="relic-hint">Reveal a tile's nature before committing</div>
+      <div class="relic-status">${peekSpent ? 'Spent' : peekMode ? 'Active — pick a tile' : 'Available'}</div>`;
     if (!peekSpent) {
       peekCard.addEventListener('click', () => {
         peekMode = !peekMode;
