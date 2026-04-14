@@ -142,6 +142,7 @@ socket.on('error', ({ message }) => alert(message));
 // ─── Helpers ─────────────────────────────────────────
 function cap(s) { return s ? s[0].toUpperCase() + s.slice(1) : ''; }
 function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function formatScore(s) { return s % 1 === 0 ? String(s) : s.toFixed(1); }
 
 // Maps internal team identifiers to guild names
 function teamLabel(team) { return team === 'red' ? 'Dawn' : 'Dusk'; }
@@ -204,14 +205,17 @@ function render() {
   roomCodeDisplay.textContent = state.roomCode;
 
   const scores = state.scores || { red: 0, blue: 0 };
-  redRemaining.textContent  = scores.red;
-  blueRemaining.textContent = scores.blue;
+  redRemaining.textContent  = formatScore(scores.red);
+  blueRemaining.textContent = formatScore(scores.blue);
 
   // Turn indicator
   if (state.phase !== 'lobby' && state.phase !== 'ended') {
     turnDot.className = `turn-dot ${state.currentTeam}`;
-    const phase = state.phase === 'captain-clue' ? 'Pathfinder Charts' : 'On the Hunt';
-    turnText.textContent = `${teamLabel(state.currentTeam)} — ${phase}`;
+    let phaseLabel;
+    if (state.finalTurnActive)              phaseLabel = 'Final Turn';
+    else if (state.phase === 'captain-clue') phaseLabel = 'Pathfinder Charts';
+    else                                     phaseLabel = 'On the Hunt';
+    turnText.textContent = `${teamLabel(state.currentTeam)} — ${phaseLabel}`;
   } else if (state.phase === 'ended') {
     turnDot.className = 'turn-dot';
     turnText.textContent = state.winner === 'tie' ? 'Draw' : 'Game Over';
@@ -844,20 +848,29 @@ function renderLog() {
 function renderOverlay() {
   if (state.phase === 'ended' && !abyssAnimating) {
     winnerOverlay.style.display = 'flex';
-    const scores = state.scores || { red: 0, blue: 0 };
-    const scoreStr = `Red: ${scores.red} pts  ·  Blue: ${scores.blue} pts`;
+    const scores  = state.scores || { red: 0, blue: 0 };
+    const redStr  = formatScore(scores.red);
+    const blueStr = formatScore(scores.blue);
+    const scoreStr = `Dawn: ${redStr} pts · Dusk: ${blueStr} pts`;
 
     if (state.winner === 'tie') {
       winnerIcon.textContent = '🤝';
       winnerTitle.textContent = "It's a Tie!";
       winnerTitle.style.color = '#f0c040';
-      winnerSub.textContent = scoreStr;
+      winnerSub.textContent = state.treasureTeam
+        ? `${scoreStr} — ${teamLabel(state.treasureTeam)} Guild claimed the Treasure`
+        : scoreStr;
     } else {
       const isRed = state.winner === 'red';
       winnerIcon.textContent = isRed ? '🔴' : '🔵';
-      winnerTitle.textContent = `${cap(state.winner)} Team Wins!`;
+      winnerTitle.textContent = `${teamLabel(state.winner)} Guild Wins!`;
       winnerTitle.style.color = isRed ? '#e74c3c' : '#3498db';
-      winnerSub.textContent = scoreStr;
+      if (state.abyssTriggered) {
+        winnerSub.textContent = `${scoreStr} — Abyss triggered`;
+      } else {
+        const margin = isRed ? scores.red - scores.blue : scores.blue - scores.red;
+        winnerSub.textContent = `${scoreStr} — ahead by ${formatScore(margin)} pt${margin === 1 ? '' : 's'}`;
+      }
     }
 
     document.getElementById('new-game-btn').onclick = () => {

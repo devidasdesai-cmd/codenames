@@ -53,6 +53,9 @@ function createGame(roomCode) {
     log: [],
     scores: { red: 0, blue: 0 },
     treasureTeam: null,
+    finalTurnActive: false,
+    finalTurnTeam: null,
+    abyssTriggered: false,
     roundCorrect: 0,
     powerups: {
       red:  { peek: 1, shield: 1, shieldActive: false },
@@ -83,6 +86,8 @@ function getPublicState(game, playerId) {
     log: game.log,
     scores: game.scores,
     treasureTeam: game.treasureTeam,
+    finalTurnActive: game.finalTurnActive,
+    abyssTriggered: game.abyssTriggered,
     powerups: game.powerups,
     rapidMode: game.rapidMode,
     rapidDuration: game.rapidDuration,
@@ -123,6 +128,35 @@ function addLog(game, msg) {
   if (game.log.length > 50) game.log.pop();
 }
 
+function formatScore(s) {
+  return s % 1 === 0 ? String(s) : s.toFixed(1);
+}
+
+function endGame(game) {
+  const { red, blue } = game.scores;
+  let winner;
+  if (red > blue)       winner = 'red';
+  else if (blue > red)  winner = 'blue';
+  else                  winner = game.treasureTeam || 'tie';
+
+  game.winner = winner;
+  game.phase  = 'ended';
+  clearGameTimer(game);
+
+  const redStr  = formatScore(red);
+  const blueStr = formatScore(blue);
+  addLog(game, `Final scores — Dawn: ${redStr} | Dusk: ${blueStr}`);
+  if (winner === 'tie') {
+    if (game.treasureTeam) {
+      addLog(game, `Tie on points — ${game.treasureTeam === 'red' ? 'Dawn' : 'Dusk'} Guild wins via Treasure!`);
+    } else {
+      addLog(game, `It's a tie! (${redStr} pts each)`);
+    }
+  } else {
+    addLog(game, `${winner === 'red' ? 'Dawn' : 'Dusk'} Guild wins!`);
+  }
+}
+
 // ─── Timer helpers ────────────────────────────────────
 function clearGameTimer(game) {
   if (game._timer) { clearTimeout(game._timer); game._timer = null; }
@@ -137,7 +171,11 @@ function startRapidTimer(game) {
     // Guard: ensure this is still the same active game
     if (games[game.roomCode] !== game || game.phase !== 'guessing') return;
     addLog(game, "Time's up! Turn passes automatically.");
-    switchTurn(game);
+    if (game.finalTurnActive) {
+      endGame(game);
+    } else {
+      switchTurn(game);
+    }
     broadcastState(game);
   }, ms);
 }
@@ -340,8 +378,9 @@ io.on('connection', (socket) => {
     if (card.color === 'abyss') {
       game.winner = game.currentTeam === 'red' ? 'blue' : 'red';
       game.phase = 'ended';
+      game.abyssTriggered = true;
       clearGameTimer(game);
-      addLog(game, `Final scores — Dawn: ${game.scores.red} | Dusk: ${game.scores.blue}`);
+      addLog(game, `Final scores — Dawn: ${formatScore(game.scores.red)} | Dusk: ${formatScore(game.scores.blue)}`);
       addLog(game, `The Abyss! ${game.winner === 'red' ? 'Dawn' : 'Dusk'} Guild wins!`);
       broadcastState(game);
       return;
@@ -356,9 +395,15 @@ io.on('connection', (socket) => {
       return; // turn keeps going — do NOT fall through to switchTurn
     }
 
-    // ── Neutral / opponent card: switch turn ──────────
+    // ── Neutral / opponent card: −0.5 pts, end turn ──
     if (!isOwnCard) {
-      switchTurn(game);
+      game.scores[game.currentTeam] -= 0.5;
+      addLog(game, `−0.5 pts for ${game.currentTeam === 'red' ? 'Dawn' : 'Dusk'} Guild`);
+      if (game.finalTurnActive) {
+        endGame(game);
+      } else {
+        switchTurn(game);
+      }
       broadcastState(game);
       return;
     }
@@ -371,23 +416,31 @@ io.on('connection', (socket) => {
       addLog(game, `3-in-a-row bonus! +1 extra point for ${game.currentTeam === 'red' ? 'Dawn' : 'Dusk'}!`);
     }
 
-    // ── Check natural game end (all team cards revealed) ─
-    if (countRemaining(game, 'red') === 0 || countRemaining(game, 'blue') === 0) {
-      const { red, blue } = game.scores;
-      let winner;
-      if (red > blue) winner = 'red';
-      else if (blue > red) winner = 'blue';
-      else winner = game.treasureTeam || 'tie';
-
-      game.winner = winner;
-      game.phase = 'ended';
-      clearGameTimer(game);
-      if (winner === 'tie') {
-        addLog(game, `Game over — It's a tie! (${red} pts each)`);
-      } else {
-        addLog(game, `${winner === 'red' ? 'Dawn' : 'Dusk'} Guild wins the game!`);
+    // ── Check if current team revealed all their tiles ─
+    if (countRemaining(game, game.currentTeam) === 0) {
+      if (game.finalTurnActive) {
+        // Final turn just ended — resolve by score
+        endGame(game);
+        broadcastState(game);
+        return;
       }
-      addLog(game, `Final scores — Dawn: ${red} | Dusk: ${blue}`);
+      const opposingTeam = game.currentTeam === 'red' ? 'blue' : 'red';
+      if (countRemaining(game, opposingTeam) === 0) {
+        // Both teams exhausted — end immediately
+        endGame(game);
+        broadcastState(game);
+        return;
+      }
+      // Grant the opposing team one final turn to respond
+      game.finalTurnActive = true;
+      game.finalTurnTeam   = opposingTeam;
+      game.powerups[game.currentTeam].shieldActive = false;
+      game.roundCorrect = 0;
+      game.currentTeam  = opposingTeam;
+      game.phase        = 'captain-clue';
+      game.clue         = null;
+      game.guessesLeft  = 0;
+      addLog(game, `${game.currentTeam === 'red' ? 'Dawn' : 'Dusk'} Guild — one final turn to respond!`);
       broadcastState(game);
       return;
     }
@@ -405,7 +458,11 @@ io.on('connection', (socket) => {
     if (game.phase !== 'guessing') return;
 
     addLog(game, `${player.name} decided to take a nap`);
-    switchTurn(game);
+    if (game.finalTurnActive) {
+      endGame(game);
+    } else {
+      switchTurn(game);
+    }
     broadcastState(game);
   });
 
