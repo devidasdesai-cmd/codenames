@@ -415,7 +415,7 @@ function renderBoard() {
           if (state.myRole === 'spymaster' && (card.color === 'treasure' || card.color === 'abyss')) {
             const emojiEl = document.createElement('div');
             emojiEl.className = 'card-tile-emoji';
-            emojiEl.textContent = card.color === 'treasure' ? '✨' : '🌀';
+            emojiEl.textContent = card.color === 'treasure' ? '💎' : '🌀';
             el.appendChild(emojiEl);
           }
         }

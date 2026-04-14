@@ -1311,10 +1311,11 @@ body.peek-mode .card.peekable:hover {
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.9rem;
-  opacity: 0.52;
+  opacity: 0.82;
   pointer-events: none;
   line-height: 1;
   user-select: none;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7));
 }
 
 /* Color dot — small faction indicator */
