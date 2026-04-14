@@ -175,13 +175,19 @@
       gap: 1rem;
     }
 
-    /* Mini tile — circular medallion matching game board cards exactly */
+    /* Mini tile — circular medallion, mirrors game board card exactly */
     .mini-tile {
       width: 80px;
       height: 80px;
       flex-shrink: 0;
       border-radius: 50%;
-      border: 1px solid transparent;
+      border: 1.5px solid rgba(255,255,255,0.09);
+      background: radial-gradient(circle at 40% 35%, #1a1d34, #0d0f1e 80%);
+      box-shadow:
+        inset 0 0 0 6px rgba(255,255,255,0.025),
+        inset 0 1px 0 rgba(255,255,255,0.05),
+        inset 0 -1px 0 rgba(0,0,0,0.4),
+        0 3px 10px rgba(0,0,0,0.55);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -190,52 +196,53 @@
       font-weight: 700;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+      color: var(--text);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
       position: relative;
     }
 
-    /* Revealed Dawn (red) */
+    /* Dark mode hint styles — identical to game board */
     .mini-tile-dawn {
-      background: radial-gradient(circle at 38% 32%, #c44030, #6e1120 55%, #3d0910 100%);
-      border-color: rgba(192,57,43,0.3) !important;
-      box-shadow: inset 0 0 0 5px rgba(255,100,80,0.08), 0 2px 12px rgba(185,38,45,0.35), 0 1px 4px rgba(0,0,0,0.5);
-      color: rgba(255,230,225,0.92);
-      text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+      background: radial-gradient(circle at 40% 35%, rgba(185,38,45,0.42), rgba(14,4,6,0.97) 80%);
+      border-color: rgba(220,65,50,0.72);
+      box-shadow: inset 0 0 0 6px rgba(220,65,50,0.09), 0 3px 10px rgba(0,0,0,0.55);
+      color: #f07060;
     }
-
-    /* Revealed Dusk (blue) */
     .mini-tile-dusk {
-      background: radial-gradient(circle at 38% 32%, #2a7dc0, #0e3a6e 55%, #061d3f 100%);
-      border-color: rgba(36,113,163,0.3) !important;
-      box-shadow: inset 0 0 0 5px rgba(80,150,220,0.08), 0 2px 12px rgba(28,95,175,0.30), 0 1px 4px rgba(0,0,0,0.5);
-      color: rgba(220,238,255,0.92);
-      text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+      background: radial-gradient(circle at 40% 35%, rgba(28,95,175,0.48), rgba(4,9,26,0.97) 80%);
+      border-color: rgba(55,150,230,0.72);
+      box-shadow: inset 0 0 0 6px rgba(55,150,230,0.11), 0 3px 10px rgba(0,0,0,0.55);
+      color: #60c0f8;
     }
-
-    /* Revealed Neutral */
     .mini-tile-neutral {
-      background: radial-gradient(circle at 50% 50%, #141620, #0c0d16);
-      border-color: rgba(255,255,255,0.03) !important;
-      opacity: 0.45;
-      color: rgba(255,255,255,0.22);
+      background: radial-gradient(circle at 40% 35%, #28282e, #141418 80%);
+      border-color: rgba(130,130,150,0.42);
+      box-shadow: inset 0 0 0 6px rgba(130,130,150,0.05), 0 3px 10px rgba(0,0,0,0.55);
+      color: #9898a8;
     }
-
-    /* Revealed Treasure */
-    .mini-tile-treasure {
-      background: radial-gradient(circle at 38% 32%, #e8b020, #a07010 55%, #4a3200 100%);
-      border-color: rgba(240,190,30,0.70) !important;
-      box-shadow: inset 0 0 0 5px rgba(255,220,120,0.18), 0 2px 14px rgba(220,165,15,0.55), 0 1px 4px rgba(0,0,0,0.5);
-    }
-    .mini-tile-treasure .mini-tile-emoji { font-size: 1.6rem; line-height: 1; }
-
-    /* Revealed Abyss */
     .mini-tile-abyss {
-      background: radial-gradient(circle at 38% 32%, #1c0638, #0a0118 55%, #020006 100%);
-      border-color: rgba(80,32,140,0.42) !important;
-      box-shadow: inset 0 0 0 5px rgba(80,25,150,0.10), 0 2px 14px rgba(40,8,100,0.40), 0 3px 12px rgba(0,0,0,0.85);
-      color: #ddd0f8;
-      text-shadow: 0 0 10px rgba(90,40,170,0.38), 0 1px 3px rgba(0,0,0,0.9);
+      background: radial-gradient(circle at 40% 35%, rgba(48,10,95,0.90), rgba(8,2,16,0.98) 80%);
+      border-color: rgba(88,36,148,0.70);
+      box-shadow:
+        inset 0 0 0 6px rgba(70,18,120,0.14),
+        0 0 10px rgba(40,8,100,0.22),
+        0 3px 10px rgba(0,0,0,0.7);
+      color: #b89ee0;
+      text-shadow: 0 0 6px rgba(80,30,160,0.4);
     }
-    .mini-tile-abyss .mini-tile-emoji { font-size: 1.6rem; line-height: 1; }
+    .mini-tile-treasure {
+      background: radial-gradient(circle at 40% 35%, rgba(230,175,20,0.82), rgba(12,9,2,0.97) 80%);
+      border-color: rgba(255,200,40,0.95);
+      box-shadow:
+        inset 0 0 0 6px rgba(240,190,40,0.22),
+        inset 0 1px 0 rgba(255,230,100,0.12),
+        0 0 18px rgba(220,170,10,0.40),
+        0 3px 10px rgba(0,0,0,0.55);
+      color: #ffe050;
+      text-shadow: 0 0 8px rgba(255,200,30,0.55);
+    }
+
+    .mini-tile-emoji { font-size: 1.5rem; line-height: 1; }
 
     .mini-tile-inner {
       display: flex;
@@ -256,20 +263,54 @@
       line-height: 1.45;
     }
 
-    /* Light mode tile overrides */
+    /* Light mode — mirror game.css [data-theme="light"] .card.hint-* exactly */
+    [data-theme="light"] .mini-tile {
+      background: radial-gradient(circle at 40% 35%, #e8eaf4, #d8dae8 80%);
+      border-color: rgba(0,0,0,0.12);
+      box-shadow:
+        inset 0 0 0 6px rgba(255,255,255,0.55),
+        inset 0 1px 0 rgba(255,255,255,0.8),
+        inset 0 -1px 0 rgba(0,0,0,0.06),
+        0 2px 8px rgba(0,0,0,0.1);
+      color: #0c0d18;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.7);
+    }
     [data-theme="light"] .mini-tile-dawn {
-      background: radial-gradient(circle at 38% 32%, #c44030, #6e1120 55%, #3d0910 100%);
+      background: radial-gradient(circle at 40% 35%, rgba(185,38,45,0.18), #dde0ee 80%);
+      border-color: rgba(185,38,45,0.58);
+      box-shadow: inset 0 0 0 6px rgba(185,38,45,0.07), 0 2px 8px rgba(0,0,0,0.1);
+      color: #9e1f1f;
+      text-shadow: none;
     }
     [data-theme="light"] .mini-tile-dusk {
-      background: radial-gradient(circle at 38% 32%, #2a7dc0, #0e3a6e 55%, #061d3f 100%);
+      background: radial-gradient(circle at 40% 35%, rgba(28,95,175,0.18), #dde0ee 80%);
+      border-color: rgba(28,95,175,0.6);
+      box-shadow: inset 0 0 0 6px rgba(28,95,175,0.07), 0 2px 8px rgba(0,0,0,0.1);
+      color: #1050a0;
+      text-shadow: none;
     }
     [data-theme="light"] .mini-tile-neutral {
-      background: radial-gradient(circle at 50% 50%, #c8cad8, #b8bace);
-      border-color: rgba(0,0,0,0.12) !important;
-      opacity: 0.55;
-      color: rgba(0,0,0,0.25);
+      background: radial-gradient(circle at 40% 35%, rgba(100,100,118,0.16), #dde0ee 80%);
+      border-color: rgba(100,100,125,0.48);
+      box-shadow: inset 0 0 0 6px rgba(100,100,118,0.06), 0 2px 8px rgba(0,0,0,0.1);
+      color: #505068;
+      text-shadow: none;
+      opacity: 1;
     }
-    [data-theme="light"] .mini-tile-abyss { opacity: 0.85; }
+    [data-theme="light"] .mini-tile-abyss {
+      background: radial-gradient(circle at 40% 35%, rgba(48,10,95,0.22), #d8dae8 80%);
+      border-color: rgba(52,12,110,0.72);
+      box-shadow: inset 0 0 0 6px rgba(48,10,95,0.09), 0 2px 8px rgba(0,0,0,0.12);
+      color: #330870;
+      text-shadow: none;
+    }
+    [data-theme="light"] .mini-tile-treasure {
+      background: radial-gradient(circle at 40% 35%, rgba(210,158,0,0.52), #dde0ee 80%);
+      border-color: rgba(195,145,0,0.88);
+      box-shadow: inset 0 0 0 6px rgba(210,158,0,0.14), 0 0 12px rgba(200,150,0,0.22), 0 2px 8px rgba(0,0,0,0.1);
+      color: #6b3d00;
+      text-shadow: none;
+    }
 
     /* ── Steps ── */
     .steps {
