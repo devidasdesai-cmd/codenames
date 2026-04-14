@@ -721,15 +721,15 @@ function renderClueForm() {
 }
 
 function renderGuessingBar() {
-  const bar = document.createElement('div');
-  bar.className = 'status-bar';
+  const wrap = document.createElement('div');
+  wrap.className = 'guessing-layout';
 
-  const teamColor  = state.currentTeam === 'red' ? '#e74c3c' : '#3498db';
-  const isMyTurn   = state.myTeam === state.currentTeam && state.myRole === 'operative';
-  const pu         = state.powerups?.[state.currentTeam];
-  const puEnabled  = state.powerupsEnabled !== false;
+  const teamColor = state.currentTeam === 'red' ? '#e74c3c' : '#3498db';
+  const isMyTurn  = state.myTeam === state.currentTeam && state.myRole === 'operative';
+  const pu        = state.powerups?.[state.currentTeam];
+  const puEnabled = state.powerupsEnabled !== false;
 
-  // Clue display
+  // ── Row 1: clue display ──
   if (state.clue) {
     const clueDisp = document.createElement('div');
     clueDisp.className = 'clue-display';
@@ -742,63 +742,78 @@ function renderGuessingBar() {
     count.textContent = state.clue.count === 0 ? '' : `for ${state.clue.count}`;
     clueDisp.appendChild(word);
     if (state.clue.count !== 0) clueDisp.appendChild(count);
-    bar.appendChild(clueDisp);
+    wrap.appendChild(clueDisp);
   }
 
-  // ── Relics + end-turn in one unified row ──
-  if (isMyTurn && pu && puEnabled) {
-    const relicRow = document.createElement('div');
-    relicRow.className = 'relic-row';
-
-    // Peek relic
-    const peekSpent = pu.peek <= 0;
-    const peekCard  = document.createElement('div');
-    peekCard.className = `relic-card relic-peek${peekMode ? ' relic-active' : ''}${peekSpent ? ' relic-spent' : ''}`;
-    peekCard.title = 'Reveal a tile\'s nature before committing';
-    peekCard.innerHTML = `
-      <div class="relic-icon">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-      </div>
-      <span class="relic-name">Peek</span>
-      <span class="relic-status">${peekSpent ? 'Spent' : peekMode ? 'Active' : 'Use'}</span>`;
-    if (!peekSpent) {
-      peekCard.addEventListener('click', () => {
-        peekMode = !peekMode;
-        document.body.classList.toggle('peek-mode', peekMode);
-        renderActionBar();
-        renderBoard();
-      });
-    }
-    relicRow.appendChild(peekCard);
-
-    // Shield relic
-    const shieldSpent = pu.shield <= 0 && !pu.shieldActive;
-    const shieldCard  = document.createElement('div');
-    shieldCard.className = `relic-card relic-shield${pu.shieldActive ? ' relic-active' : ''}${shieldSpent ? ' relic-spent' : ''}`;
-    shieldCard.title = 'Block one bad guess from costing a turn';
-    shieldCard.innerHTML = `
-      <div class="relic-icon">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      </div>
-      <span class="relic-name">Shield</span>
-      <span class="relic-status">${shieldSpent ? 'Spent' : pu.shieldActive ? 'Active' : 'Use'}</span>`;
-    if (!shieldSpent) {
-      shieldCard.addEventListener('click', () => socket.emit('activate-shield'));
-    }
-    relicRow.appendChild(shieldCard);
-
-    bar.appendChild(relicRow);
-  }
-
+  // ── Row 2: relics + end-turn ──
   if (isMyTurn) {
+    const controlsRow = document.createElement('div');
+    controlsRow.className = 'guessing-controls';
+
+    if (pu && puEnabled) {
+      const relicRow = document.createElement('div');
+      relicRow.className = 'relic-row';
+
+      // Peek relic
+      const peekSpent = pu.peek <= 0;
+      const peekCard  = document.createElement('div');
+      peekCard.className = `relic-card relic-peek${peekMode ? ' relic-active' : ''}${peekSpent ? ' relic-spent' : ''}`;
+      peekCard.title = 'Reveal a tile\'s nature before committing';
+      peekCard.innerHTML = `
+        <div class="relic-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <span class="relic-name">Peek</span>`;
+      if (!peekSpent) {
+        peekCard.addEventListener('click', () => {
+          peekMode = !peekMode;
+          document.body.classList.toggle('peek-mode', peekMode);
+          renderActionBar();
+          renderBoard();
+        });
+      }
+      relicRow.appendChild(peekCard);
+
+      // Shield relic
+      const shieldSpent = pu.shield <= 0 && !pu.shieldActive;
+      const shieldCard  = document.createElement('div');
+      shieldCard.className = `relic-card relic-shield${pu.shieldActive ? ' relic-active' : ''}${shieldSpent ? ' relic-spent' : ''}`;
+      shieldCard.title = 'Block one bad guess from costing a turn';
+      shieldCard.innerHTML = `
+        <div class="relic-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <span class="relic-name">Shield</span>`;
+      if (!shieldSpent) {
+        shieldCard.addEventListener('click', () => socket.emit('activate-shield'));
+      }
+      relicRow.appendChild(shieldCard);
+
+      controlsRow.appendChild(relicRow);
+    }
+
     const endBtn = document.createElement('button');
     endBtn.className = 'end-turn-btn';
     endBtn.textContent = 'Take a Nap';
     endBtn.addEventListener('click', () => socket.emit('end-turn'));
-    bar.appendChild(endBtn);
+    controlsRow.appendChild(endBtn);
+
+    wrap.appendChild(controlsRow);
+
+    // ── Row 3: active hint text ──
+    const peekActive   = pu && puEnabled && peekMode;
+    const shieldActive = pu && puEnabled && pu.shieldActive;
+    if (peekActive || shieldActive) {
+      const hint = document.createElement('div');
+      hint.className = 'relic-active-hint';
+      hint.textContent = peekActive
+        ? 'Peek active — select a tile to reveal its nature'
+        : 'Shield active — your next wrong guess won\'t end the turn';
+      wrap.appendChild(hint);
+    }
   }
 
-  actionBar.appendChild(bar);
+  actionBar.appendChild(wrap);
 }
 
 // ─── Timer ───────────────────────────────────────────

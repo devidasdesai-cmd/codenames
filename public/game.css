@@ -911,6 +911,30 @@ body::before {
 .give-clue-btn:active { transform: scale(0.97); }
 
 /* ── Guessing bar ─────────────────────────────────── */
+.guessing-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+.guessing-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.relic-active-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-style: italic;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
 .status-bar {
   display: flex;
   align-items: center;
@@ -1050,16 +1074,6 @@ body::before {
   color: var(--text-dim);
 }
 
-.relic-status {
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  padding: 0.1rem 0.45rem;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.07);
-}
 
 /* ── Peek relic ───────────────────────────────────── */
 .relic-peek { border-color: rgba(88,36,148,0.45); }
@@ -1079,7 +1093,6 @@ body::before {
 }
 .relic-peek.relic-active .relic-icon { background: rgba(130,60,220,0.22); color: #d0b0ff; }
 .relic-peek.relic-active .relic-name { color: #d0b0ff; }
-.relic-peek.relic-active .relic-status { color: #d0b0ff; background: rgba(130,60,220,0.15); border-color: rgba(130,60,220,0.3); }
 
 /* ── Shield relic ─────────────────────────────────── */
 .relic-shield { border-color: rgba(28,120,72,0.4); }
@@ -1099,7 +1112,6 @@ body::before {
 }
 .relic-shield.relic-active .relic-icon { background: rgba(46,160,100,0.22); color: #7de8bb; }
 .relic-shield.relic-active .relic-name { color: #7de8bb; }
-.relic-shield.relic-active .relic-status { color: #7de8bb; background: rgba(46,160,100,0.15); border-color: rgba(46,160,100,0.3); }
 
 @keyframes relic-pulse-peek {
   0%, 100% { box-shadow: 0 0 10px rgba(88,36,148,0.35); }
@@ -1996,11 +2008,16 @@ body.peek-mode .card.peekable:hover {
 [data-theme="light"] .end-turn-btn { background: #e8ecf5; border-color: rgba(0,0,0,0.14); color: var(--text-dim); }
 [data-theme="light"] .end-turn-btn:hover { border-color: rgba(0,0,0,0.25); color: var(--text); }
 [data-theme="light"] .relic-card { background: #eaecf6; border-color: rgba(0,0,0,0.12); }
-[data-theme="light"] .relic-peek { border-color: rgba(88,36,148,0.38); }
-[data-theme="light"] .relic-peek .relic-icon { background: rgba(88,36,148,0.1); }
-[data-theme="light"] .relic-shield { border-color: rgba(28,120,72,0.35); }
-[data-theme="light"] .relic-shield .relic-icon { background: rgba(28,120,72,0.1); }
+[data-theme="light"] .relic-peek { border-color: rgba(88,36,148,0.4); }
+[data-theme="light"] .relic-peek .relic-icon { background: rgba(88,36,148,0.12); color: #5a1ea0; }
+[data-theme="light"] .relic-peek .relic-name { color: #5a1ea0; }
+[data-theme="light"] .relic-peek.relic-active .relic-name { color: #4a0e90; }
+[data-theme="light"] .relic-shield { border-color: rgba(28,120,72,0.38); }
+[data-theme="light"] .relic-shield .relic-icon { background: rgba(28,120,72,0.12); color: #0e6b40; }
+[data-theme="light"] .relic-shield .relic-name { color: #0e6b40; }
+[data-theme="light"] .relic-shield.relic-active .relic-name { color: #085c34; }
 [data-theme="light"] .relic-card.relic-spent { opacity: 0.28; }
+[data-theme="light"] .relic-active-hint { color: var(--text-dim); }
 [data-theme="light"] .settings-inline-row:hover:not(:disabled) { background: rgba(0,0,0,0.04); }
 [data-theme="light"] .settings-header-gear { border-color: rgba(0,0,0,0.12); }
 [data-theme="light"] .settings-header-gear:hover { color: var(--gold); border-color: rgba(140,100,14,0.45); }
