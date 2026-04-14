@@ -495,11 +495,6 @@ function renderActionBar() {
   } else if (state.phase === 'captain-clue') {
     if (state.myRole === 'spymaster' && state.myTeam === state.currentTeam) {
       renderClueForm();
-    } else {
-      const msg = document.createElement('div');
-      msg.className = 'waiting-msg';
-      msg.textContent = `Waiting for the ${teamLabel(state.currentTeam)} Pathfinder to chart the course…`;
-      actionBar.appendChild(msg);
     }
   } else if (state.phase === 'guessing') {
     renderGuessingBar();
@@ -756,11 +751,6 @@ function renderGuessingBar() {
     endBtn.textContent = 'Take a Nap';
     endBtn.addEventListener('click', () => socket.emit('end-turn'));
     bar.appendChild(endBtn);
-  } else {
-    const waitMsg = document.createElement('span');
-    waitMsg.className = 'waiting-msg';
-    waitMsg.textContent = `${teamLabel(state.currentTeam)} Guild is on the hunt…`;
-    bar.appendChild(waitMsg);
   }
 
   actionBar.appendChild(bar);
