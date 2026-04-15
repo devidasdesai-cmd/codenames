@@ -395,10 +395,11 @@ io.on('connection', (socket) => {
       return; // turn keeps going — do NOT fall through to switchTurn
     }
 
-    // ── Neutral / opponent card: −0.5 pts, end turn ──
+    // ── Neutral / opponent card: +0.5 pts to opposing team, end turn ──
     if (!isOwnCard) {
-      game.scores[game.currentTeam] -= 0.5;
-      addLog(game, `−0.5 pts for ${game.currentTeam === 'red' ? 'Dawn' : 'Dusk'} Guild`);
+      const opponentTeam = game.currentTeam === 'red' ? 'blue' : 'red';
+      game.scores[opponentTeam] += 0.5;
+      addLog(game, `+0.5 pts for ${opponentTeam === 'red' ? 'Dawn' : 'Dusk'} Guild`);
       if (game.finalTurnActive) {
         endGame(game);
       } else {
@@ -409,9 +410,11 @@ io.on('connection', (socket) => {
     }
 
     // ── Own card: score a point ───────────────────────
+    // Note: roundCorrect is NOT reset by shield blocks or peek — a 3-in-a-row
+    // bonus fires even if power-ups were used during the streak.
     game.scores[game.currentTeam]++;
     game.roundCorrect++;
-    if (game.roundCorrect === 3) {
+    if (game.roundCorrect % 3 === 0) {
       game.scores[game.currentTeam]++;
       addLog(game, `3-in-a-row bonus! +1 extra point for ${game.currentTeam === 'red' ? 'Dawn' : 'Dusk'}!`);
     }
@@ -528,10 +531,12 @@ io.on('connection', (socket) => {
     if (!game || !currentPlayerId || !game.players[currentPlayerId]) return;
     if (game.players[currentPlayerId].socketId !== socket.id) return;
 
-    // Use a grace period before removing the player.
-    // Page navigation (index → game.html) disconnects the old socket before
-    // the new one reconnects, causing a false "left the game" log.
-    // The timer is cancelled if the player reconnects within 5 seconds.
+    // Use a long grace period before removing the player.
+    // Mobile browsers disconnect WebSockets when the device locks or the tab
+    // is backgrounded — sometimes for 30–60 seconds before reconnecting.
+    // Page navigation (index → game.html) also briefly disconnects the old
+    // socket before the new one connects. The timer is cancelled if the player
+    // reconnects before it fires.
     const pid  = currentPlayerId;
     const room = currentRoom;
     game.players[pid]._leaveTimer = setTimeout(() => {
@@ -542,7 +547,7 @@ io.on('connection', (socket) => {
       delete g.players[pid];
       addLog(g, `${pname} left the game`);
       broadcastState(g);
-    }, 5000);
+    }, 90000);
   });
 });
 

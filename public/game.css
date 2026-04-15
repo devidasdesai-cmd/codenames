@@ -1222,7 +1222,7 @@ body.peek-mode .card.peekable:hover {
 
 .card-word {
   font-family: 'Inter', sans-serif;
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1883,7 +1883,7 @@ body.peek-mode .card.peekable:hover {
     padding: 0.1rem 0.3rem;
   }
   .card-word {
-    font-size: clamp(0.42rem, calc(var(--m-tile) * 0.096), 0.6rem);
+    font-size: clamp(0.46rem, calc(var(--m-tile) * 0.104), 0.65rem);
     letter-spacing: 0.03em;
   }
   .card-tile-emoji { font-size: 0.72rem; bottom: 6px; }
