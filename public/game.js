@@ -13,10 +13,61 @@ let timerInterval = null;   // setInterval handle for countdown
 let abyssAnimating = false; // delay winner overlay until abyss animation finishes
 const definitionCache = {}; // word → definition string
 
+// ─── Audio ───────────────────────────────────────────
+// AudioContext must be created inside a user-gesture handler (autoplay policy).
+// We keep the listeners alive (no once:true) so every interaction can warm up
+// a suspended context — not just the very first click.
+let audioCtx = null;
+
+function initAudio() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  } catch (_) {}
+}
+document.addEventListener('click',    initAudio);
+document.addEventListener('touchend', initAudio);
+
+function playNotes(freqs, spacing, peak, duration) {
+  try {
+    if (!audioCtx) return;
+    // resume() is async — schedule notes only after the context is running so
+    // we read a valid currentTime and don't schedule into the past.
+    const schedule = () => {
+      freqs.forEach((freq, i) => {
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const t = audioCtx.currentTime + 0.05 + i * spacing;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(peak, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+        osc.start(t);
+        osc.stop(t + duration);
+      });
+    };
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().then(schedule);
+    } else {
+      schedule();
+    }
+  } catch (_) {}
+}
+
+// Rising 4-note fanfare: C4–E4–G4–C5
+function playExpeditionStart() { playNotes([261.63, 329.63, 392.00, 523.25], 0.14, 0.30, 1.4); }
+
+// Ascending C5–E5–G5 chime
+function playClueChime()       { playNotes([523.25, 659.25, 783.99],         0.18, 0.28, 1.1); }
+
 // ─── DOM refs ────────────────────────────────────────
 const roomCodeDisplay  = document.getElementById('room-code-display');
 const redRemaining     = document.getElementById('red-remaining');
 const blueRemaining    = document.getElementById('blue-remaining');
+const redTilesLeft     = document.getElementById('red-tiles-left');
+const blueTilesLeft    = document.getElementById('blue-tiles-left');
 const turnDot          = document.getElementById('turn-dot');
 const turnText         = document.getElementById('turn-text');
 const actionBar        = document.getElementById('action-bar');
@@ -102,8 +153,9 @@ socket.on('room-joined', ({ playerId: assignedId }) => {
 
 socket.on('game-state', (s) => {
   // Detect new log entries before overwriting state
-  const prevFirst = state ? (state.log[0] || '') : '';
-  const newFirst  = s.log[0] || '';
+  const prevFirst  = state ? (state.log[0] || '') : '';
+  const newFirst   = s.log[0] || '';
+  const prevPhase  = state ? state.phase : null;
 
   // Exit peek mode if it's no longer our turn / guessing phase
   if (peekMode && (s.phase !== 'guessing' || s.myTeam !== s.currentTeam)) {
@@ -112,6 +164,11 @@ socket.on('game-state', (s) => {
   }
 
   state = s;
+
+  // Fanfare when the expedition begins (lobby → captain-clue)
+  if (prevPhase === 'lobby' && s.phase === 'captain-clue') playExpeditionStart();
+  // Chime when a clue is given (captain-clue → guessing)
+  if (prevPhase === 'captain-clue' && s.phase === 'guessing') playClueChime();
 
   if (newFirst && newFirst !== prevFirst) {
     if (newFirst.includes('found the Treasure')) showEventAnim('treasure', s.currentTeam);
@@ -207,6 +264,16 @@ function render() {
   const scores = state.scores || { red: 0, blue: 0 };
   redRemaining.textContent  = formatScore(scores.red);
   blueRemaining.textContent = formatScore(scores.blue);
+
+  const tiles = state.tilesRemaining;
+  const inGame = state.phase !== 'lobby' && state.phase !== 'ended';
+  if (tiles && inGame) {
+    redTilesLeft.textContent  = `${tiles.red} tile${tiles.red === 1 ? '' : 's'} left`;
+    blueTilesLeft.textContent = `${tiles.blue} tile${tiles.blue === 1 ? '' : 's'} left`;
+  } else {
+    redTilesLeft.textContent  = '';
+    blueTilesLeft.textContent = '';
+  }
 
   // Turn indicator
   if (state.phase !== 'lobby' && state.phase !== 'ended') {

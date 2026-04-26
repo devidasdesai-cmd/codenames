@@ -85,6 +85,10 @@ function getPublicState(game, playerId) {
     winner: game.winner,
     log: game.log,
     scores: game.scores,
+    tilesRemaining: {
+      red: countRemaining(game, 'red'),
+      blue: countRemaining(game, 'blue'),
+    },
     treasureTeam: game.treasureTeam,
     finalTurnActive: game.finalTurnActive,
     abyssTriggered: game.abyssTriggered,
@@ -187,6 +191,13 @@ function switchTurn(game) {
   game.powerups[game.currentTeam].shieldActive = false;
   game.roundCorrect = 0;
   game.currentTeam = game.currentTeam === 'red' ? 'blue' : 'red';
+  // If the incoming team has no tiles left (e.g. opponent accidentally
+  // revealed their last tile), end immediately rather than giving them
+  // a captain-clue phase they can't do anything with.
+  if (countRemaining(game, game.currentTeam) === 0) {
+    endGame(game);
+    return;
+  }
   game.phase = 'captain-clue';
   game.clue = null;
   game.guessesLeft = 0;
@@ -259,12 +270,19 @@ io.on('connection', (socket) => {
 
     // Only one Pathfinder per guild
     if (role === 'spymaster') {
-      const slotTaken = Object.values(game.players).some(
+      const blocking = Object.values(game.players).find(
         p => p.id !== currentPlayerId && p.team === team && p.role === 'spymaster'
       );
-      if (slotTaken) {
-        socket.emit('error', { message: `${team === 'red' ? 'Dawn' : 'Dusk'} Guild already has a Pathfinder.` });
-        return;
+      if (blocking) {
+        // If the blocking player is disconnected (grace period running), evict them
+        // so the rejoining player can reclaim their slot (e.g. mobile page reload).
+        if (blocking._leaveTimer) {
+          clearTimeout(blocking._leaveTimer);
+          delete game.players[blocking.id];
+        } else {
+          socket.emit('error', { message: `${team === 'red' ? 'Dawn' : 'Dusk'} Guild already has a Pathfinder.` });
+          return;
+        }
       }
     }
 

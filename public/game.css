@@ -162,9 +162,25 @@ body::before {
 
 .score {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05rem;
+}
+
+.score-row {
+  display: flex;
   align-items: center;
   gap: 0.4rem;
   font-weight: 600;
+}
+
+.score-tiles-left {
+  font-size: 0.56rem;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  opacity: 0.55;
+  line-height: 1;
+  min-height: 0.7em;
 }
 
 .score-label {
